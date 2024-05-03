@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="center">
+    <form id="form">
+      <div class="clientInfo">
+        <div class="field">
+            <label for="DateOfAgreementExecution" class="label">Date of Agreement Execution</label>
+            <div class="control">
+              <input id="DateOfAgreementExecution" class="input" type="date">
+            </div>
+        </div>  
+        <div class="field">
+            <label for="ClientName" class="label">Client Name</label>
+            <div class="control">
+              <input id="ClientName" class="input" type="text" placeholder="Text input">
+            </div>
+        </div>          
+        <div class="field">
+            <label for="ConstitutionOfBusiness" class="label">Constitution Of Business</label>
+            <div class="control">
+              <input id="ConstitutionOfBusiness" class="input" type="text" placeholder="Text input">
+            </div>
+        </div>
+        <div class="field">
+            <label for="ClientAddress" class="label">Client Address</label>
+            <div class="control">
+              <input id="ClientAddress" class="input" type="text" placeholder="Text input">
+            </div>
+        </div>
+        <div class="field">
+            <label for="SellersRepresentativeDesignation" class="label">Seller's Representative Designation</label>
+            <div class="control">
+              <input id="SellersRepresentativeDesignation" class="input" type="text" placeholder="Text input">
+            </div>
+        </div>
+        <div class="field">
+          <label for="AgreementTimePeriod" class="label">Agreement Time Period</label>
+          <div class="control">
+            <input id="AgreementTimePeriod" class="input" type="text" placeholder="(Month/year)">
+          </div>
+        </div>
+      </div>
+      <div id="separator"></div>
+      <div id="ServicePackageDurationAndFee">
+        <div class="field">
+            <label for="MarketPlace" class="label">Market Place</label>
+            <div class="control">
+              <input id="MarketPlace" class="input" type="text" placeholder="Text input">
+            </div>
+        </div>
+        <div class="field">
+            <label for="PackageDuration" class="label">Package Duration</label>
+            <div class="control">
+              <input id="PackageDuration" class="input" type="text" placeholder="Text input">
+            </div>
+        </div>
+        <div class="field">
+          <label for="AdvancePackageAmount" class="label">Advance Package Amount</label>
+          <div class="control">
+            <input id="AdvancePackageAmount" class="input" type="text" placeholder="Text input">
+          </div>
+        </div>
+      </div>
+      <div id="termAndCondition">
+        <div class="field">
+          <label for="TermsConditionsOfSales" class="label">Terms & Conditions of sales</label>
+          <div class="control">
+            <textarea id="TermsConditionsOfSales" class="textarea" placeholder="Text Input"></textarea>
+          </div>
+        </div>
+      </div>
+    </form>
+    <div class="field">
+      <p class="control">
+        <button class="button" onclick="generate()">
+          Download
+        </button>
+      </p>
+    </div>
+  </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.45.0/docxtemplater.js"></script>
+    <script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.js"></script>
+    <script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip-utils.js"></script>
+    <script src="./index.js"></script>
+</body>
+</html>
