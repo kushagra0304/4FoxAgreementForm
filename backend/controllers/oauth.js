@@ -1,6 +1,7 @@
 const router = require('express').Router();
 
 router.get('', async (request, response) => {
+    console.log(request.params);
     return response.send(request.params);
 })
 
