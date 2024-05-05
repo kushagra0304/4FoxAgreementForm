@@ -1,6 +1,6 @@
 const router = require('express').Router();
 
-router.post('/oauth2callback', async (request, response) => {
+router.get('/oauth2callback', async (request, response) => {
     return response.send(request.params);
 })
 
