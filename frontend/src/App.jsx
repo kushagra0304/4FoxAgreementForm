@@ -1,33 +1,40 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const submitForm = (event) => {
+    event.preventDefault();
+
+    const scope = `ZohoMail.messages.CREATE`;
+    const client_id = `1000.LEJI5MPQLVOMJCRN1UQF9I4XTY2CIC`;
+    const access_type = `offline`;
+    const redirect_uri = `https://fourfoxagreementform.onrender.com/oauth2callback`;
+
+    const loginUserURL = `https://accounts.zoho.com/oauth/v2/auth?scope=${scope}&client_id=${client_id}&response_type=code&access_type=${access_type}&redirect_uri=${redirect_uri}&prompt=consent`;
+
+    window.location.href = loginUserURL;
+  }
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <form onSubmit={submitForm}>
+        <div className="field">
+              <label htmlFor="userEmail" className="label">Email</label>
+              <div className="control">
+                <input value={email} onChange={(value) => setEmail(value)} id="userEmail" className="input" type="text"></input>
+              </div>
+          </div>  
+          <div className="field">
+              <label htmlFor="userPassword" className="label">Password</label>
+              <div className="control">
+                <input value={password} onChange={(value) => setPassword(value)} id="userPassword" className="input" type="password"></input>
+              </div>
+          </div>  
+          <button className='button is-link' type='submit'>Login</button>
+      </form>
     </>
   )
 }

@@ -8,6 +8,7 @@ const { default: mongoose } = require('mongoose');
 // My imports 
 
 const config = require('./utils/config');
+const oauthRouter = require('./controllers/oauth');
 const middlewares = require('./utils/middlewares');
 
 // ---------------------------------------------------------
@@ -40,7 +41,7 @@ if (config.NODE_ENV === 'development') {
 // ----------------------------
 // Controllers
 
-// app.use('/api/dispatch', dispatchRouter);
+app.use('/oauth2callback', oauthRouter);
 // app.use('/api/stock', stockRouter);
 // app.use('/api/order', orderRouter);
 // app.use('/api/company', companyRouter);
