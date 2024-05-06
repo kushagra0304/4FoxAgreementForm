@@ -1,1 +1,1 @@
-GET http://localhost:10000/oauth2callback HTTP/2 content-type: application/json
+GET http://localhost:10000/oauth/callback HTTP/2 content-type: application/json
