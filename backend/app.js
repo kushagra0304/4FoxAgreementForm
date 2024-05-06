@@ -36,6 +36,7 @@ const app = express();
 // ---------------------------------------------------------
 // Middleware list
 
+app.use(express.static(__dirname + '/public'));
 app.use(cors());
 app.use(express.json());
 if (config.NODE_ENV === 'development') {
