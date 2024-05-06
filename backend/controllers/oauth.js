@@ -25,7 +25,7 @@ router.get('/callback', async (request, response) => {
 
     const token = generateRandomStateOfLen10();
 
-    res.cookie('userToken', token, { domain: 'https://fourfoxagreementform-1.onrender.com' });
+    response.cookie('userToken', token, { domain: 'https://fourfoxagreementform-1.onrender.com' });
 
     return response.redirect('https://fourfoxagreementform-1.onrender.com');
 })
