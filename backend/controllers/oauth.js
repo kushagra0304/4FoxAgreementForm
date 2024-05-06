@@ -23,6 +23,7 @@ router.get('/callback', async (request, response) => {
 router.get('/stateForOAuth', async (request, response) => {
     const state = generateRandomStateOfLen10();
     states.add(state);
+    console.log(states);
     return response.send(state);
 })
 
