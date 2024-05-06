@@ -24,8 +24,11 @@ router.get('/callback', async (request, response) => {
     }
 
     const token = generateRandomStateOfLen10();
-
-    response.cookie('userToken', token, { domain: 'https://fourfoxagreementform-1.onrender.com' });
+    
+    res.cookie('userToken', token, { 
+        maxAge: 86400000, 
+        domain: 'https://fourfoxagreementform-1.onrender.com'
+    });
 
     return response.redirect('https://fourfoxagreementform-1.onrender.com');
 })

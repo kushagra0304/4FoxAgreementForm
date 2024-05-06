@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const { default: mongoose } = require('mongoose');
+const cookieParser = require('cookie-parser');
 
 // ---------------------------------------------------------
 // My imports 
@@ -40,6 +41,7 @@ app.use(express.json());
 if (config.NODE_ENV === 'development') {
     app.use(require('./utils/middlewares').morganRequestLogger);
 }
+app.use(cookieParser());
 // ----------------------------
 // Controllers
 
