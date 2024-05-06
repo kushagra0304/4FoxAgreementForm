@@ -1,19 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import Form from './components/Form';
 import Login from './components/Login'
-
-const getLoggedUserToken = () => {
-  const loggedUserTokenJSON = window.localStorage.getItem('userToken');
-  if (loggedUserTokenJSON) {
-    return JSON.parse(loggedUserTokenJSON)
-  }
-
-  return null
-}
+import { getCheckJWT } from './services/oauth';
 
 function App() {
-  const [token, setToken] = useState(getLoggedUserToken())
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
+
+  useEffect(() => {
+    getCheckJWT().then((res) => {
+      if(res.status == 200) {
+        setUserLoggedIn(true)
+      }
+    })
+  }, [])
 
   // const submitForm = (event) => {
   //   event.preventDefault();
@@ -30,7 +30,7 @@ function App() {
 
   return (
     <>
-      {token ? <Form setToken={setToken}/> : <Login/>}
+      {userLoggedIn ? <Form/> : <Login/>}
     </>
   )
 }

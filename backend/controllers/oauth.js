@@ -43,4 +43,15 @@ router.get('/stateForOAuth', async (request, response) => {
     return response.send(state);
 })
 
+router.get('/checkJWT', async (request, response) => {
+    const { userToken } = request.cookies
+
+    if(!tokens.has(userToken)){
+        response.clearCookie("userToken");
+        return response.status(401).send();
+    }
+
+    return response.send();
+})
+
 module.exports = router;
