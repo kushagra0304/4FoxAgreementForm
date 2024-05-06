@@ -10,14 +10,24 @@ function generateRandomStateOfLen10() {
 }
 
 const states = new Set();
+const tokens = new Set();
 const people = {};
 
 router.get('/callback', async (request, response) => {
     const {location, code, state} = request.query;
     const accountsServer = request.query['request.query'];
-    console.log(request.query);
-    console.log(states);
-    return response.send(request.query);
+
+    if(!states.has(state)) {
+        return response.status(401);
+    } else {
+        states.delete(state);
+    }
+
+    const token = generateRandomStateOfLen10();
+
+    res.cookie('userToken', token, { domain: 'https://fourfoxagreementform-1.onrender.com' });
+
+    return response.redirect('https://fourfoxagreementform-1.onrender.com');
 })
 
 router.get('/stateForOAuth', async (request, response) => {
