@@ -2,6 +2,7 @@
 // NPM Packages
 
 const express = require('express');
+const cors = require('cors');
 const { default: mongoose } = require('mongoose');
 
 // ---------------------------------------------------------
@@ -34,6 +35,7 @@ const app = express();
 // ---------------------------------------------------------
 // Middleware list
 
+app.use(cors());
 app.use(express.json());
 if (config.NODE_ENV === 'development') {
     app.use(require('./utils/middlewares').morganRequestLogger);
@@ -41,7 +43,7 @@ if (config.NODE_ENV === 'development') {
 // ----------------------------
 // Controllers
 
-app.use('/oauth2callback', oauthRouter);
+app.use('/oauth', oauthRouter);
 // app.use('/api/stock', stockRouter);
 // app.use('/api/order', orderRouter);
 // app.use('/api/company', companyRouter);
