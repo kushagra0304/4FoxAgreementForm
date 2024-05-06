@@ -24,8 +24,8 @@ router.get('/callback', async (request, response) => {
     }
 
     const token = generateRandomStateOfLen10();
-    
-    res.cookie('userToken', token, { 
+
+    response.cookie('userToken', token, { 
         maxAge: 86400000, 
         domain: 'https://fourfoxagreementform-1.onrender.com'
     });
