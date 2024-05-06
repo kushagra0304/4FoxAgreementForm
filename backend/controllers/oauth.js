@@ -18,13 +18,15 @@ router.get('/callback', async (request, response) => {
     const accountsServer = request.query['request.query'];
 
 
-    // if(!state || !states.has(state)) {
-    //     return response.status(401).send();
-    // } else {
-    //     states.delete(state);
-    // }
+    if(!state || !states.has(state)) {
+        return response.status(401).send();
+    } else {
+        states.delete(state);
+    }
 
     const token = generateRandomStateOfLen10();
+
+    tokens.add(token);
 
 
     response.cookie('userToken', token, { maxAge: 86400000, httpOnly: true });
