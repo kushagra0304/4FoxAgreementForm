@@ -4,7 +4,7 @@ const Login = () => {
     const zohoLogin = async () => {
         const state = (await oauthService.getStateForOAuth()).data;
         const scope = `ZohoMail.messages.CREATE,ZohoMail.accounts.READ`;
-        const client_id = `1000.YV31DC9CODX4PYC0C5YPRWX5WNR0MB`;
+        const client_id = `1000.F0A6G9A627OS4T5F1E4FYDNSLIQEZD`;
         const access_type = `offline`;
         const redirect_uri = `https://fourfoxagreementform.onrender.com/oauth/callback`;
 
