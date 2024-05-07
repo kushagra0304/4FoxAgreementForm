@@ -32,12 +32,26 @@ router.get('/callback', async (request, response) => {
     try {
         const accessTokenRes = axios.post(`https://accounts.zoho.com/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${process.env.client_id}&client_secret=${process.env.client_secret}&redirect_uri=${redirect_uri}&scope=${scope}`);
         tokens.add(token);
-        users.token = {
+        users[token] = {
             authToken: accessTokenRes.data
         }
     } catch(error) {
         return response.status(401).send(error);
     }
+
+    try {
+        const { data } = axios.get(`https://mail.zoho.com/api/accounts`, {
+            Headers: {
+                "Authorization": `Zoho-oauthtoken ${users[token].authToken.access_token}`
+            }
+        });
+
+        users[token].accountDetails = data.data[0]
+    } catch(error) {
+        return response.status(401).send(error);
+    }
+
+    console.log(users[token])
 
     response.cookie('userToken', token, { maxAge: 86400000, httpOnly: true });
     response.setHeader('Location', 'https://fourfoxagreementform.onrender.com');
@@ -50,7 +64,6 @@ router.get('/callback', async (request, response) => {
 router.get('/stateForOAuth', async (request, response) => {
     const state = generateRandomStateOfLen10();
     states.add(state);
-    console.log(states);
     return response.send(state);
 })
 
@@ -64,5 +77,17 @@ router.get('/checkJWT', async (request, response) => {
 
     return response.send();
 })
+
+// router.get('/email', async (request, response) => {
+//     const { userToken } = request.cookies
+//     const {  } = request.body
+
+//     if(!tokens.has(userToken)){
+//         response.clearCookie("userToken");
+//         return response.status(401).send();
+//     }
+
+//     return response.send();
+// })
 
 module.exports = router;
