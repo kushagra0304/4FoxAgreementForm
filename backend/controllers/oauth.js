@@ -42,7 +42,7 @@ router.get('/callback', async (request, response) => {
 
     try {
         const { data } = await axios.get(`https://mail.zoho.com/api/accounts`, {
-            Headers: {
+            headers: {
                 "Authorization": `Zoho-oauthtoken ${users[token].authToken.access_token}`
             }
         });
