@@ -31,6 +31,7 @@ router.get('/callback', async (request, response) => {
     
     try {
         const accessTokenRes = await axios.post(`https://accounts.zoho.com/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${process.env.client_id}&client_secret=${process.env.client_secret}&redirect_uri=${redirect_uri}&scope=${scope}`);
+        console.log(accessTokenRes)
         tokens.add(token);
         users[token] = {
             authToken: accessTokenRes.data
