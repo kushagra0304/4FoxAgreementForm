@@ -46,6 +46,8 @@ router.get('/callback', async (request, response) => {
             }
         });
 
+        console.log(data);
+
         users[token].accountDetails = data.data[0]
     } catch(error) {
         return response.status(401).send(error);
