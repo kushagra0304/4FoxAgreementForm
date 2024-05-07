@@ -16,7 +16,7 @@ const users = {};
 
 router.get('/callback', async (request, response) => {
     const {location, code, state} = request.query;
-    const accountsServer = request.query['request.query'];
+    const accountsServer = request.query['accounts-server'];
 
     if(!state || !states.has(state)) {
         return response.status(401).send();
