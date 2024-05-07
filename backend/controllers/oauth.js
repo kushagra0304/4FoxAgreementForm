@@ -30,7 +30,7 @@ router.get('/callback', async (request, response) => {
     const scope = `ZohoMail.messages.CREATE,ZohoMail.accounts.READ`;
     
     try {
-        const accessTokenRes = await axios.post(`https://accounts.zoho.com/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=${redirect_uri}&scope=${scope}`);
+        const accessTokenRes = await axios.post(`https://accounts.zoho.in/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=${redirect_uri}&scope=${scope}`);
         console.log(accessTokenRes)
         tokens.add(token);
         users[token] = {
