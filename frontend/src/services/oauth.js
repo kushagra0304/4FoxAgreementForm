@@ -20,7 +20,13 @@ export const getCheckJWT = async () => {
     try {
         return await axios.get(`${domain}/oauth/checkJWT`);
     } catch (error) {
-        console.log(error);
-        console.log("Error connecting to server")
+        const { response } = error
+
+        if(response.status !== 401) {
+            console.log(error);
+            console.log("Error connecting to server")        
+        }
+
+        return response;
     }
 }

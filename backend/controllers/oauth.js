@@ -12,7 +12,7 @@ function generateRandomStateOfLen10() {
 
 const states = new Set();
 const tokens = new Set();
-const people = {};
+const users = {};
 
 router.get('/callback', async (request, response) => {
     const {location, code, state} = request.query;
@@ -24,21 +24,22 @@ router.get('/callback', async (request, response) => {
         states.delete(state);
     }
 
-    const client_id = `1000.YV31DC9CODX4PYC0C5YPRWX5WNR0MB`;
-    const client_secret = `8a6853f66a377bf47958c8264a42f57847b44e98f2`;
-    const redirect_uri = `https://fourfoxagreementform.onrender.com/oauth/callback`;
-    const scope = `ZohoMail.messages.CREATE,ZohoMail.accounts.READ`;
-    axios.post(`https://accounts.zoho.com/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${client_id}&client_secret=${client_secret}&redirect_uri=${redirect_uri}&scope=${scope}`).then((res) => {
-        console.log(res);
-    })
-
     const token = generateRandomStateOfLen10();
 
-    tokens.add(token);
-
+    const redirect_uri = `https://fourfoxagreementform.onrender.com/oauth/callback`;
+    const scope = `ZohoMail.messages.CREATE,ZohoMail.accounts.READ`;
+    
+    try {
+        const accessTokenRes = axios.post(`https://accounts.zoho.com/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${process.env.client_id}&client_secret=${process.env.client_secret}&redirect_uri=${redirect_uri}&scope=${scope}`);
+        tokens.add(token);
+        users.token = {
+            authToken: accessTokenRes.data
+        }
+    } catch(error) {
+        return response.status(401).send(error);
+    }
 
     response.cookie('userToken', token, { maxAge: 86400000, httpOnly: true });
-
     response.setHeader('Location', 'https://fourfoxagreementform.onrender.com');
     response.status(302);
 
