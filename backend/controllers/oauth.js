@@ -41,7 +41,7 @@ router.get('/callback', async (request, response) => {
     }
 
     try {
-        const { data } = await axios.get(`https://mail.zoho.in/api/accounts`, {
+        const { data } = await axios.get(`https://mail.zoho.${location}/api/accounts`, {
             headers: {
                 "Authorization": `Zoho-oauthtoken ${users[token].authToken.access_token}`
             }
@@ -81,16 +81,42 @@ router.get('/checkJWT', async (request, response) => {
     return response.send();
 })
 
-// router.get('/email', async (request, response) => {
-//     const { userToken } = request.cookies
-//     const {  } = request.body
+router.get('/email', async (request, response) => {
+    const { userToken } = request.cookies
 
-//     if(!tokens.has(userToken)){
-//         response.clearCookie("userToken");
-//         return response.status(401).send();
-//     }
+    if(!tokens.has(userToken)){
+        response.clearCookie("userToken");
+        return response.status(401).send();
+    }
 
-//     return response.send();
-// })
+    const user = users[userToken]
+
+    const body = {
+        fromAddress: user.accountDetails.primaryEmailAddress,
+        toAddress: "kushagra0304@gmail.com",
+        // ccAddress: "colleagues@mywork.com",
+        // bccAddress: "restadmin1@restapi.com",
+        subject: "Email - Always and Forever",
+        content: "Email can never be dead. The most neutral and effective way, that can be used for one to many and two way communication.",
+        askReceipt : "yes"
+    }
+
+    let res;
+
+    try {
+        res = await axios.post(`https://mail.zoho.com/api/accounts/${user.accountDetails.accountId}/messages`, body, {
+            headers: {
+                "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
+            }
+        })
+
+        console.log(res);
+    } catch(error) {
+        console.log(error)
+        return response.status(500).send(error)
+    }
+
+    return response.send(res);
+})
 
 module.exports = router;
