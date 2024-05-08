@@ -13,7 +13,7 @@ const Form = () => {
             const arrayBuffer = new Uint8Array(fileContent);
     
             // Make POST request using Axios
-            axios.post('https://fourfoxagreementform.onrender.com/oauth/callback', arrayBuffer, {
+            axios.post('https://fourfoxagreementform.onrender.com/oauth/email', arrayBuffer, {
                 headers: {
                     'Content-Type': 'application/octet-stream'
                 }
