@@ -89,9 +89,6 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
     const { userToken } = request.cookies
     const file = request.file
 
-    console.log(request.body);
-    console.log(file)
-
     if(!tokens.has(userToken)){
         response.clearCookie("userToken");
         return response.status(401).send();
@@ -103,22 +100,17 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
 
         const headers = {
             'Content-Type': 'application/octet-stream',
-            'Content-Disposition': `attachment; filename=temp.pdf`,
             "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
         };
 
         const res = await axios.post(
-            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments`, 
+            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments?fileName=${temp}`, 
             fs.readFileSync(file.path), 
             { headers }
         )
 
-        console.log(res.data);
+        console.log(res);
     } catch(error) {
-        console.log(error);
-        console.log(error.data)
-        console.log(user.accountDetails.accountId)
-        console.log(user.authToken.access_token)
         return response.status(500).send("error sending file");
     }
 
