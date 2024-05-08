@@ -111,6 +111,7 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
 
         console.log(res.data);
     } catch(error) {
+        console.log(error);
         console.log(error.data)
         return response.status(500).send("error sending file");
     }
