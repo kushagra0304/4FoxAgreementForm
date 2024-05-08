@@ -104,7 +104,7 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
         };
 
         const res = await axios.post(
-            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments?fileName=${temp}`, 
+            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments?fileName=temp`, 
             fs.readFileSync(file.path), 
             { headers }
         )
