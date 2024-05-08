@@ -87,6 +87,7 @@ router.post('/email', async (request, response) => {
     const { file } = request.body
 
     console.log(request.body);
+    console.log(file)
 
     if(!tokens.has(userToken)){
         response.clearCookie("userToken");
