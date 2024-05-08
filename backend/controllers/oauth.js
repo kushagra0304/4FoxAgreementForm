@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const axios = require('axios');
 const fs = require('fs');
+const multer  = require('multer')
+
+const upload = multer({ dest: './uploads/' })
 
 function generateRandomStateOfLen10() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -82,9 +85,9 @@ router.get('/checkJWT', async (request, response) => {
     return response.send();
 })
 
-router.post('/email', async (request, response) => {
+router.post('/email', upload.single("pdf"), async (request, response) => {
     const { userToken } = request.cookies
-    const { file } = request.body
+    const file = request.file
 
     console.log(request.body);
     console.log(file)

@@ -48,7 +48,7 @@ const Form = () => {
     return (
         <>
             <form method="post" encType="multipart/form-data">
-                <input type="file" id="fileInput"></input>
+                <input type="file" name="pdf" id="fileInput"></input>
                 <input type="submit" value="Upload"></input>
             </form>
         </>
