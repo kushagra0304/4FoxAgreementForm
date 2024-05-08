@@ -86,7 +86,7 @@ router.get('/checkJWT', async (request, response) => {
 function convertToOctetStream(pdfFilePath) {
     try {
         // Read the PDF file
-        const pdfData = fs.readFileSync(pdfFilePath);
+        const pdfData = fs.readFileSync('../temp.pdf');
 
         // Set the appropriate content type for application/octet-stream
         const contentType = 'application/octet-stream';
@@ -129,6 +129,7 @@ router.get('/email', async (request, response) => {
 
         console.log(res.data);
     } catch(error) {
+        console.log(error)
         return response.status(500).send("error sending file");
     }
 
