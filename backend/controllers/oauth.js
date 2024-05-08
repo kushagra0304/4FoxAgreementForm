@@ -119,7 +119,7 @@ router.get('/email', async (request, response) => {
     const user = users[userToken]
 
     try {
-        const convertToOctetStreamData = convertToOctetStream("/temp")
+        const convertToOctetStreamData = convertToOctetStream("temp.pdf")
 
         convertToOctetStreamData.headers["Authorization"] = `Zoho-oauthtoken ${user.authToken.access_token}`
 
