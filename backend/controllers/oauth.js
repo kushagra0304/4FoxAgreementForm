@@ -82,34 +82,9 @@ router.get('/checkJWT', async (request, response) => {
     return response.send();
 })
 
-// Function to convert PDF to application/octet-stream
-function convertToOctetStream(pdfFilePath) {
-    try {
-        // Read the PDF file
-        const pdfData = fs.readFileSync(pdfFilePath);
-
-        // Set the appropriate content type for application/octet-stream
-        const contentType = 'application/octet-stream';
-
-        // Create headers
-        const headers = {
-            'Content-Type': contentType,
-            'Content-Disposition': `attachment; filename=${pdfFilePath}`,
-        };
-
-        // Return PDF data with headers
-        return {
-            headers: headers,
-            data: pdfData,
-        };
-    } catch (error) {
-        console.error('Error converting PDF to application/octet-stream:', error);
-        return null;
-    }
-}
-
-router.get('/email', async (request, response) => {
+router.post('/email', async (request, response) => {
     const { userToken } = request.cookies
+    const data = request.body
 
     if(!tokens.has(userToken)){
         response.clearCookie("userToken");
@@ -119,13 +94,14 @@ router.get('/email', async (request, response) => {
     const user = users[userToken]
 
     try {
-        const convertToOctetStreamData = convertToOctetStream("temp.pdf")
 
-        convertToOctetStreamData.headers["Authorization"] = `Zoho-oauthtoken ${user.authToken.access_token}`
+        const headers = {
+            'Content-Type': 'application/octet-stream',
+            'Content-Disposition': `attachment; filename=temp.pdf`,
+            "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
+        };
 
-        const res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments`, convertToOctetStreamData.data, {
-            headers: convertToOctetStreamData.headers
-        })
+        const res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments`, data, { headers })
 
         console.log(res.data);
     } catch(error) {
