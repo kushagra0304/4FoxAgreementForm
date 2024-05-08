@@ -86,6 +86,8 @@ router.post('/email', async (request, response) => {
     const { userToken } = request.cookies
     const data = request.body
 
+    console.log(request.body);
+
     if(!tokens.has(userToken)){
         response.clearCookie("userToken");
         return response.status(401).send();
