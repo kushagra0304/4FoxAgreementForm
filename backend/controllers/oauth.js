@@ -103,6 +103,8 @@ router.get('/email', async (request, response) => {
 
     let res;
 
+    console.log("Ehhhh");
+
     try {
         res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages`, body, {
             headers: {
