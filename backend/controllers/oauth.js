@@ -104,7 +104,7 @@ router.get('/email', async (request, response) => {
     let res;
 
     try {
-        res = await axios.post(`https://mail.zoho.com/api/accounts/${user.accountDetails.accountId}/messages`, body, {
+        res = await axios.post(`https://mail.zoho.com/api/accounts/${user.accountDetails.zuid}/messages`, body, {
             headers: {
                 "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
             }
