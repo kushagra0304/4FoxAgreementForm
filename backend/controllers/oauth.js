@@ -96,6 +96,8 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
 
     const user = users[userToken]
 
+    let fileRes;
+
     try {
 
         const headers = {
@@ -103,51 +105,56 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
             "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
         };
 
-        const res = await axios.post(
+        fileRes = await axios.post(
             `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments?fileName=temp`, 
             fs.readFileSync(file.path), 
             { headers }
         )
 
-        console.log(res);
     } catch(error) {
         return response.status(500).send("error sending file");
     }
 
 
-    return response.send();
-    // const body = {
-    //     fromAddress: user.accountDetails.primaryEmailAddress,
-    //     toAddress: "kushagra0304@gmail.com,garimasinghchauhan29@gmail.com",
-    //     // ccAddress: "colleagues@mywork.com",
-    //     // bccAddress: "restadmin1@restapi.com",
-    //     subject: "Email - Always and Forever",
-    //     content: "Email can never be dead. The most neutral and effective way, that can be used for one to many and two way communication.",
-    //     askReceipt : "yes"
-    // }
+    const body = {
+        fromAddress: user.accountDetails.primaryEmailAddress,
+        toAddress: "kushagra0304@gmail.com,garimasinghchauhan29@gmail.com",
+        // ccAddress: "colleagues@mywork.com",
+        // bccAddress: "restadmin1@restapi.com",
+        subject: "Email - Always and Forever",
+        content: "Email can never be dead. The most neutral and effective way, that can be used for one to many and two way communication.",
+        askReceipt : "yes",
+        attachments: [
+            {
+               storeName: fileRes.data.storeName,
+               attachmentPath: fileRes.data.attachmentPath,
+               attachmentName: fileRes.data.attachmentName
+            }
+         ]
+    }
 
-    // let res;
+    let res;
 
     // console.log("Ehhhh");
 
-    // try {
-    //     res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages`, body, {
-    //         headers: {
-    //             "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
-    //         }
-    //     })
+    try {
+        res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages`, body, {
+            headers: {
+                "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
+            }
+        })
 
-    //     console.log(res);
-    // } catch(error) {
-    //     console.log(error)
-    //     return response.status(500).send(error)
-    // }
+        console.log(res);
+    } catch(error) {
+        console.log(error)
+        return response.status(500).send(error)
+    }
 
-    // if(res.data.status.code === 200) {
-    //     response.send();
-    // } else {
-    //     response.status(500).send()
-    // }
+    if(res.data.status.code === 200) {
+        response.send();
+    } else {
+        response.status(500).send()
+    }
 
 
 })
