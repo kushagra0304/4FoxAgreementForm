@@ -1,3 +1,6 @@
+const fs = require('fs');
+
+console.log(fs.readFileSync("temp.pdf"))
 // ---------------------------------------------------------
 // NPM Packages
 
