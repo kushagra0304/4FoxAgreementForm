@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const axios = require('axios');
+const fs = require('fs');
 
 function generateRandomStateOfLen10() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -81,6 +82,32 @@ router.get('/checkJWT', async (request, response) => {
     return response.send();
 })
 
+// Function to convert PDF to application/octet-stream
+function convertToOctetStream(pdfFilePath) {
+    try {
+        // Read the PDF file
+        const pdfData = fs.readFileSync(pdfFilePath);
+
+        // Set the appropriate content type for application/octet-stream
+        const contentType = 'application/octet-stream';
+
+        // Create headers
+        const headers = {
+            'Content-Type': contentType,
+            'Content-Disposition': `attachment; filename=${pdfFilePath}`,
+        };
+
+        // Return PDF data with headers
+        return {
+            headers: headers,
+            data: pdfData,
+        };
+    } catch (error) {
+        console.error('Error converting PDF to application/octet-stream:', error);
+        return null;
+    }
+}
+
 router.get('/email', async (request, response) => {
     const { userToken } = request.cookies
 
@@ -91,38 +118,55 @@ router.get('/email', async (request, response) => {
 
     const user = users[userToken]
 
-    const body = {
-        fromAddress: user.accountDetails.primaryEmailAddress,
-        toAddress: "kushagra0304@gmail.com,garimasinghchauhan29@gmail.com",
-        // ccAddress: "colleagues@mywork.com",
-        // bccAddress: "restadmin1@restapi.com",
-        subject: "Email - Always and Forever",
-        content: "Email can never be dead. The most neutral and effective way, that can be used for one to many and two way communication.",
-        askReceipt : "yes"
-    }
-
-    let res;
-
-    console.log("Ehhhh");
-
     try {
-        res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages`, body, {
-            headers: {
-                "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
-            }
+        const convertToOctetStreamData = convertToOctetStream("../temp.pdf")
+
+        convertToOctetStreamData.headers["Authorization"] = `Zoho-oauthtoken ${user.authToken.access_token}`
+
+        const res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments`, convertToOctetStreamData.data, {
+            headers: convertToOctetStreamData.headers
         })
 
-        console.log(res);
+        console.log(res.data);
     } catch(error) {
-        console.log(error)
-        return response.status(500).send(error)
+        return response.status(500).send("error sending file");
     }
 
-    if(res.data.status.code === 200) {
-        response.send();
-    } else {
-        response.status(500).send()
-    }
+    return response.send();
+    // const body = {
+    //     fromAddress: user.accountDetails.primaryEmailAddress,
+    //     toAddress: "kushagra0304@gmail.com,garimasinghchauhan29@gmail.com",
+    //     // ccAddress: "colleagues@mywork.com",
+    //     // bccAddress: "restadmin1@restapi.com",
+    //     subject: "Email - Always and Forever",
+    //     content: "Email can never be dead. The most neutral and effective way, that can be used for one to many and two way communication.",
+    //     askReceipt : "yes"
+    // }
+
+    // let res;
+
+    // console.log("Ehhhh");
+
+    // try {
+    //     res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages`, body, {
+    //         headers: {
+    //             "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
+    //         }
+    //     })
+
+    //     console.log(res);
+    // } catch(error) {
+    //     console.log(error)
+    //     return response.status(500).send(error)
+    // }
+
+    // if(res.data.status.code === 200) {
+    //     response.send();
+    // } else {
+    //     response.status(500).send()
+    // }
+
+
 })
 
 module.exports = router;
