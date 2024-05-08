@@ -118,7 +118,11 @@ router.get('/email', async (request, response) => {
         return response.status(500).send(error)
     }
 
-    return response.send(res);
+    if(res.data.data.status === 200) {
+        response.send();
+    } else {
+        response.status(500).send()
+    }
 })
 
 module.exports = router;
