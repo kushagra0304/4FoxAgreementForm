@@ -93,7 +93,7 @@ router.get('/email', async (request, response) => {
 
     const body = {
         fromAddress: user.accountDetails.primaryEmailAddress,
-        toAddress: "kushagra0304@gmail.com",
+        toAddress: "kushagra0304@gmail.com,garimasinghchauhan29@gmail.com",
         // ccAddress: "colleagues@mywork.com",
         // bccAddress: "restadmin1@restapi.com",
         subject: "Email - Always and Forever",
