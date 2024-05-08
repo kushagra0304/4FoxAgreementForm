@@ -8,12 +8,9 @@ const Form = () => {
 
         reader.onload = function(event) {
             const fileContent = event.target.result;
-    
-            // Convert file content to ArrayBuffer
-            const arrayBuffer = new Uint8Array(fileContent);
-    
+        
             // Make POST request using Axios
-            axios.post('https://fourfoxagreementform.onrender.com/oauth/email', arrayBuffer, {
+            axios.post('https://fourfoxagreementform.onrender.com/oauth/email', fileContent, {
                 headers: {
                     'Content-Type': 'application/octet-stream'
                 }
