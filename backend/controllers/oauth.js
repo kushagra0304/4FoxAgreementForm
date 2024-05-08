@@ -107,7 +107,7 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
             "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
         };
 
-        const res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments`, file, { headers })
+        const res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments`, fs.createReadStream(file.path), { headers })
 
         console.log(res.data);
     } catch(error) {
