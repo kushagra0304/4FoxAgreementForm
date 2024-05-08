@@ -118,7 +118,7 @@ router.get('/email', async (request, response) => {
         return response.status(500).send(error)
     }
 
-    if(res.data.data.status === 200) {
+    if(res.data.status === 200) {
         response.send();
     } else {
         response.status(500).send()
