@@ -86,7 +86,7 @@ router.get('/checkJWT', async (request, response) => {
 function convertToOctetStream(pdfFilePath) {
     try {
         // Read the PDF file
-        const pdfData = fs.readFileSync('../temp.pdf');
+        const pdfData = fs.readFileSync('./temp.pdf');
 
         // Set the appropriate content type for application/octet-stream
         const contentType = 'application/octet-stream';
