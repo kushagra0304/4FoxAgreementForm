@@ -111,6 +111,8 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
             { headers }
         )
 
+        console.log(fileRes)
+
     } catch(error) {
         return response.status(500).send("error sending file");
     }
@@ -126,9 +128,9 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
         askReceipt : "yes",
         attachments: [
             {
-               storeName: fileRes.data.storeName,
-               attachmentPath: fileRes.data.attachmentPath,
-               attachmentName: fileRes.data.attachmentName
+               storeName: fileRes.data.data.storeName,
+               attachmentPath: fileRes.data.data.attachmentPath,
+               attachmentName: fileRes.data.data.attachmentName
             }
          ]
     }
