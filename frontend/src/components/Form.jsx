@@ -35,7 +35,7 @@ const Form = () => {
 
             const file = form.querySelector('input[type="file"]').files[0];
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('pdf', file);
 
             axios.post('https://fourfoxagreementform.onrender.com/oauth/email', formData).then((res) => {
                 console.log("Submit succes" + res);
