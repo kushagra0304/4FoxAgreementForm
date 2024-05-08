@@ -107,14 +107,21 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
             "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
         };
 
-        const res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments`, fs.readFileSync(file.path), { headers })
+        const res = await axios.post(
+            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments`, 
+            fs.readFileSync(file.path), 
+            { headers }
+        )
 
         console.log(res.data);
     } catch(error) {
         console.log(error);
         console.log(error.data)
+        console.log(user.accountDetails.accountId)
+        console.log(user.authToken.access_token)
         return response.status(500).send("error sending file");
     }
+
 
     return response.send();
     // const body = {
