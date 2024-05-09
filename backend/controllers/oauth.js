@@ -1,9 +1,9 @@
 const router = require('express').Router();
 const axios = require('axios');
-const fs = require('fs');
-const multer  = require('multer')
-
-const upload = multer({ dest: './uploads/' })
+const PizZip = require("pizzip");
+const Docxtemplater = require("docxtemplater");
+const fs = require("fs");
+const path = require("path");
 
 function generateRandomStateOfLen10() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -85,9 +85,9 @@ router.get('/checkJWT', async (request, response) => {
     return response.send();
 })
 
-router.post('/email', upload.single("pdf"), async (request, response) => {
+router.post('/email', async (request, response) => {
     const { userToken } = request.cookies
-    const file = request.file
+    const { body } = request
 
     if(!tokens.has(userToken)){
         response.clearCookie("userToken");
@@ -95,6 +95,39 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
     }
 
     const user = users[userToken]
+
+    const content = fs.readFileSync(
+        path.resolve(__dirname, "input.docx"),
+        "binary"
+    );
+
+    const zip = new PizZip(content);
+
+    const doc = new Docxtemplater(zip, {
+        paragraphLoop: true,
+        linebreaks: true,
+    });
+
+    doc.render({
+        DateOfAgreementExecution: body.DateOfAgreementExecution,
+        ClientName: body.ClientName,
+        ConstitutionOfBusiness: body.ConstitutionOfBusiness,
+        ClientAddress: body.ClientAddress,
+        SellersRepresentativeDesignation: body.SellersRepresentativeDesignation,
+        AgreementTimePeriod: body.AgreementTimePeriod,
+        MarketPlace: body.MarketPlace,
+        PackageDuration: body.PackageDuration,
+        AdvancePackageAmount: body.AdvancePackageAmount,
+        TermsConditionsOfSales: body.TermsConditionsOfSales
+    });
+
+    // Get the zip document and generate it as a nodebuffer
+    const buf = doc.getZip().generate({
+        type: "nodebuffer",
+        // compression: DEFLATE adds a compression step.
+        // For a 50MB output document, expect 500ms additional CPU time
+        compression: "DEFLATE",
+    });
 
     let fileRes;
 
@@ -106,8 +139,8 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
         };
 
         fileRes = await axios.post(
-            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments?fileName=temp.pdf`, 
-            fs.readFileSync(file.path), 
+            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments?fileName=Agreement-form.pdf`, 
+            buf, 
             { headers }
         )
 
@@ -118,13 +151,13 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
     }
 
 
-    const body = {
+    const data = {
         fromAddress: user.accountDetails.primaryEmailAddress,
-        toAddress: "kushagra0304@gmail.com,garimasinghchauhan29@gmail.com",
-        // ccAddress: "colleagues@mywork.com",
+        toAddress: body.emailAddressOfRecipient,
+        ccAddress: body.emailAddressOfCC,
         // bccAddress: "restadmin1@restapi.com",
-        subject: "Email - Always and Forever",
-        content: "Email can never be dead. The most neutral and effective way, that can be used for one to many and two way communication.",
+        subject: body.subject,
+        content: body.bodyOfMail,
         askReceipt : "yes",
         attachments: [
             {
@@ -140,7 +173,7 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
     // console.log("Ehhhh");
 
     try {
-        res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages`, body, {
+        res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages`, data, {
             headers: {
                 "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
             }
@@ -157,8 +190,6 @@ router.post('/email', upload.single("pdf"), async (request, response) => {
     } else {
         response.status(500).send()
     }
-
-
 })
 
 module.exports = router;
