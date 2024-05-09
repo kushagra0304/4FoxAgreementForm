@@ -97,7 +97,7 @@ router.post('/email', async (request, response) => {
     const user = users[userToken]
 
     const content = fs.readFileSync(
-        path.resolve(__dirname, "input.docx"),
+        path.resolve(__dirname, "template.docx"),
         "binary"
     );
 
