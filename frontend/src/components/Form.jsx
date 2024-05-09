@@ -1,5 +1,4 @@
 import axios from "axios";
-import { useEffect } from "react";
 
 // const Form = () => {
 //     useEffect(() => {
@@ -47,7 +46,7 @@ const AgreementForm = () => {
             data[pair[0]] = pair[1]
         }
 
-        axios.post('http://localhost:10000/oauth/email', data).then((res) => {
+        axios.post('https://https://fourfoxagreementform.onrender.com/oauth/email', data).then((res) => {
             console.log("Submit succes" + res);
         }).catch((err) => {
             console.log("Submit unsuces" + err);
