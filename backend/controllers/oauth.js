@@ -124,7 +124,7 @@ router.post('/email', async (request, response) => {
     });
 
     // Get the zip document and generate it as a nodebuffer
-    const buf = doc.getZip().generate({
+    let buf = doc.getZip().generate({
         type: "nodebuffer",
         // compression: DEFLATE adds a compression step.
         // For a 50MB output document, expect 500ms additional CPU time
