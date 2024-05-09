@@ -46,7 +46,7 @@ const AgreementForm = () => {
             data[pair[0]] = pair[1]
         }
 
-        axios.post('https://https://fourfoxagreementform.onrender.com/oauth/email', data).then((res) => {
+        axios.post('https://fourfoxagreementform.onrender.com/oauth/email', data).then((res) => {
             console.log("Submit succes" + res);
         }).catch((err) => {
             console.log("Submit unsuces" + err);
