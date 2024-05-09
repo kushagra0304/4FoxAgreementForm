@@ -17,6 +17,7 @@
     "cross-env": "^7.0.3",
     "docxtemplater": "^3.47.2",
     "express": "^4.19.2",
+    "libreoffice-convert": "^1.5.1",
     "mongoose": "^8.3.3",
     "pizzip": "^3.1.7"
   },
