@@ -4,8 +4,6 @@ const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
 const fs = require("fs");
 const path = require("path");
-const libre = require('libreoffice-convert');
-libre.convertAsync = require('util').promisify(libre.convert);
 
 function generateRandomStateOfLen10() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -124,14 +122,12 @@ router.post('/email', async (request, response) => {
     });
 
     // Get the zip document and generate it as a nodebuffer
-    let buf = doc.getZip().generate({
+    const buf = doc.getZip().generate({
         type: "nodebuffer",
         // compression: DEFLATE adds a compression step.
         // For a 50MB output document, expect 500ms additional CPU time
         compression: "DEFLATE",
     });
-
-    buf = await libre.convertAsync(buf, ".pdf", undefined);
 
     let fileRes;
 
@@ -143,7 +139,7 @@ router.post('/email', async (request, response) => {
         };
 
         fileRes = await axios.post(
-            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments?fileName=Agreement-form.pdf`, 
+            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments?fileName=Agreement-form.docx`, 
             buf, 
             { headers }
         )
