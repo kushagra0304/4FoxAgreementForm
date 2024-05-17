@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "ENVIROMENT=development nodemon index.js",
-    "debug": "ENVIROMENT=debug index.js",
+    "debug": "ENVIROMENT=debug node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Kushagra Agarwal",
