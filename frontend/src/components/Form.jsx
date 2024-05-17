@@ -1,38 +1,5 @@
 import axios from "axios";
 
-// const Form = () => {
-//     useEffect(() => {
-//         const form = document.querySelector("form");
-
-//         form.onsubmit = (event) => {
-//             event.preventDefault();
-
-//             const file = form.querySelector('input[type="file"]').files[0];
-//             const formData = new FormData();
-//             formData.append('pdf', file);
-
-//             axios.post('https://fourfoxagreementform.onrender.com/oauth/email', formData).then((res) => {
-//                 console.log("Submit succes" + res);
-//             }).catch((err) => {
-//                 console.log("Submit unsuces" + err);
-//             })
-//         }
-//     }, [])
-
-//     return (
-//         <>
-//             <form method="post" encType="multipart/form-data">
-//                 <input type="file" name="pdf" id="fileInput"></input>
-//                 <input type="submit" value="Upload"></input>
-//             </form>
-//         </>
-//     )
-// }
-
-// import React from 'react';
-
-// export default Form;
-
 const AgreementForm = () => {
     const generate = (event) => {
         event.preventDefault()
@@ -46,7 +13,7 @@ const AgreementForm = () => {
             data[pair[0]] = pair[1]
         }
 
-        axios.post('https://fourfoxagreementform.onrender.com/oauth/email', data).then((res) => {
+        axios.post('./oauth/email', data).then((res) => {
             console.log("Submit succes" + res);
         }).catch((err) => {
             console.log("Submit unsuces" + err);

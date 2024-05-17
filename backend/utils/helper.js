@@ -1,28 +1,84 @@
-'use strict';
+const localtunnel = require('localtunnel');
+const config = require('./config');
+const fs = require('fs');
+const https = require('https');
 
-const { networkInterfaces } = require('os');
+function getPublicIPAddress() {
+  return new Promise((resolve, reject) => {
+    https.get('https://api.ipify.org?format=json', (res) => {
+      let data = '';
 
-const getIPAddress = () => {
-    const nets = networkInterfaces();
-    const results = Object.create(null); // Or just '{}', an empty object
-    
-    for (const name of Object.keys(nets)) {
-        for (const net of nets[name]) {
-            // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
-            // 'IPv4' is in Node <= 17, from 18 it's a number 4 or 6
-            const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4
-            if (net.family === familyV4Value && !net.internal) {
-                if (!results[name]) {
-                    results[name] = [];
-                }
-                results[name].push(net.address);
-            }
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        try {
+          const jsonData = JSON.parse(data);
+          resolve(jsonData.ip);
+        } catch (err) {
+          reject(err);
         }
-    }
+      });
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
+}
 
-    return results.en0[0];
+function extractSubdomain(url) {
+    // Remove the protocol part (http://, https://, etc.)
+    const urlWithoutProtocol = url.replace(/^(https?:\/\/)/, '');
+  
+    // Split the URL into parts
+    const urlParts = urlWithoutProtocol.split('/')[0].split('.');
+  
+    // Check if the URL has a subdomain
+    if (urlParts.length > 2) {
+      // Remove the top-level domain (e.g., .com, .org, .net) and the second-level domain (e.g., example, google)
+      const subdomain = urlParts.slice(0, -2).join('.');
+      return subdomain;
+    }
+  
+    // If no subdomain, return an empty string
+    return '';
+  }
+
+const exposeTheApplicationToWWW = async () => {
+  console.log(config.PORT);
+    const tunnel = await localtunnel(config.PORT, { subdomain: "hft75d6rcy" });
+
+    tunnel.on('close', () => {
+        console.log("Tunnel closed");
+    });
+
+    tunnel.on('error', (err) => {
+        console.log("Failed to tunnel: " + err);
+    });
+
+    tunnel.on('request', (info) => {
+        console.log(info);
+    });
+
+    process.on("SIGINT", () => {
+        tunnel.close();
+        process.exit();
+    })
+
+    // the assigned public url for your tunnel
+    // https://hft75d6rcy.loca.lt
+    if(extractSubdomain(tunnel.url) !== "hft75d6rcy") {
+        console.log("Closing tunnel because didn't get wanted subdomain");
+        tunnel.close();
+        exposeTheApplicationToWWW();
+        return;
+    }
+  
+    console.log("Tunneled to: " + tunnel.url);
+    const ipAddress = await getPublicIPAddress();
+    console.log('Public IP Address:', ipAddress);
 }
 
 module.exports = {
-    getIPAddress
+    exposeTheApplicationToWWW
 }

@@ -4,6 +4,10 @@ const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
 const fs = require("fs");
 const path = require("path");
+const config = require('../utils/config');
+const logger = require('../utils/logger');
+// const jwt = require('jsonwebtoken');
+const jwt = require('../utils/jwt')
 
 function generateRandomStateOfLen10() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -17,55 +21,80 @@ function generateRandomStateOfLen10() {
 const states = new Set();
 const tokens = new Set();
 const users = {};
+const invalidActiveTokens = new Set();
 
+// The following endpoint is called by zoho after successful user authentication.
+// This endpoint is supposed to be set at https://api-console.zoho.com in "Authorized Redirect URIs" field of "client details" form
+// The endpoint is: https://fourfoxagreementform.onrender.com/oauth/callback
 router.get('/callback', async (request, response) => {
     const {location, code, state} = request.query;
     const accountsServer = request.query['accounts-server'];
+
+    let accessTokenRes;
+    let accountDetailsRes;
+
+    // debug
+    logger.debug("location: " + location + ", code: " + code + ", state: " + state + ", accountsServer: " + accountsServer);
 
     if(!state || !states.has(state)) {
         return response.status(401).send();
     } else {
         states.delete(state);
     }
-
-    const token = generateRandomStateOfLen10();
-
-    const redirect_uri = `https://fourfoxagreementform.onrender.com/oauth/callback`;
+    
+    let redirect_uri = `${config.SERVER_DOMAIN}/oauth/callback`;
     const scope = `ZohoMail.messages.CREATE,ZohoMail.accounts.READ`;
     
+    // Fetching authorization code
+    // debug
+    logger.debug("Fetching authorization code");
     try {
-        const accessTokenRes = await axios.post(`${accountsServer}/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=${redirect_uri}&scope=${scope}`);
-        console.log(accessTokenRes)
-        tokens.add(token);
-        users[token] = {
-            authToken: accessTokenRes.data
-        }
+        accessTokenRes = await axios.post(`${accountsServer}/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=${redirect_uri}&scope=${scope}`);
+        // tokens.add(token);
+        // users[token] = {
+        //     authToken: accessTokenRes.data
+        // }
     } catch(error) {
-        return response.status(401).send(error);
+        // debug
+        logger.debug("Failed to fetch authorization code");
+        logger.debug(error);
+        return response.status(401).send();
     }
+    // debug
+    logger.debug("Authorization code fetched successfully.");
 
+    // Fetching account details of the user
+    // debug
+    logger.debug("Fetching account details of the user");
     try {
-        const { data } = await axios.get(`https://mail.zoho.${location}/api/accounts`, {
+        accountDetailsRes = await axios.get(`https://mail.zoho.${location}/api/accounts`, {
             headers: {
-                "Authorization": `Zoho-oauthtoken ${users[token].authToken.access_token}`
+                "Authorization": `Zoho-oauthtoken ${accessTokenRes.data.access_token}`
             }
         });
 
-        console.log(data);
-
-        users[token].accountDetails = data.data[0]
+        // users[token].accountDetails = data.data[0]
     } catch(error) {
-        return response.status(401).send(error);
+        // debug
+        logger.debug("Failed to fetch account details of the user");
+        logger.debug(error);
+        return response.status(401).send();
     }
+    // debug
+    logger.debug("Account details fetched successfully");
 
-    console.log(users[token])
+    const dataForToken = {
+        email: accountDetailsRes.data.data[0].emailAddress[0].mailId
+    }
+    const token = jwt.create(dataForToken, 60*60*24);
 
-    response.cookie('userToken', token, { maxAge: 86400000, httpOnly: true });
-    response.setHeader('Location', 'https://fourfoxagreementform.onrender.com');
+    logger.debug(token);
+
+    response.cookie('userToken', token, { maxAge: 86400000, httpOnly: true, secure: true });
+    response.setHeader('Location', config.SERVER_DOMAIN);
     response.status(302);
 
     return response.send();
-    // return response.redirect('https://fourfoxagreementform-1.onrender.com');
 })
 
 router.get('/stateForOAuth', async (request, response) => {
@@ -74,12 +103,27 @@ router.get('/stateForOAuth', async (request, response) => {
     return response.send(state);
 })
 
+router.get('/logout', async (request, response) => {
+    const { userToken } = request.cookies
+    invalidActiveTokens.add(userToken);
+    response.clearCookie("userToken");
+    return response.status(200).send();
+})
+
 router.get('/checkJWT', async (request, response) => {
     const { userToken } = request.cookies
-
-    if(!tokens.has(userToken)){
+    
+    if(!jwt.verify(userToken)) {
         response.clearCookie("userToken");
-        return response.status(401).send();
+        return response.status(401).json({ error: "Invalid Token" });
+    }
+
+    let decodedToken = jwt.decode(userToken);
+
+    if((decodedToken.exp-(Date.now()/1000)) <= 3600) {
+        jwt.invalidate(userToken);
+        const newToken = jwt.create(decodedToken.data, 60*60*24);
+        response.cookie('userToken', newToken, { maxAge: 86400000, httpOnly: true, secure: true });
     }
 
     return response.send();

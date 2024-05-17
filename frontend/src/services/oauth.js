@@ -1,15 +1,8 @@
 import axios from 'axios';
 
-let domain = ".";
-
-// import.meta.env.DEV, vite provides this enviroment variable
-if(import.meta.env.DEV){
-    domain = `http://localhost:10000`;
-}
-
 export const getStateForOAuth = async () => {
     try {
-        return await axios.get(`${domain}/oauth/stateForOAuth`);
+        return await axios.get(`./oauth/stateForOAuth`);
     } catch (error) {
         console.log(error);
         console.log("Error connecting to server")
@@ -18,7 +11,7 @@ export const getStateForOAuth = async () => {
 
 export const getCheckJWT = async () => {
     try {
-        return await axios.get(`${domain}/oauth/checkJWT`);
+        return await axios.get(`./oauth/checkJWT`);
     } catch (error) {
         const { response } = error
 
