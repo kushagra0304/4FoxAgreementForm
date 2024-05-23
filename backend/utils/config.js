@@ -28,10 +28,9 @@ if(ENVIROMENT === "development") {
     SERVER_DOMAIN = "https://fourfox.serveo.net"
   }
 }
-// const TOKEN_SECRET = generateTokenSecret();
+const TOKEN_SECRET = generateTokenSecret();
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const TOKEN_SECRET = "fgethy3uf47hu384bfhejnimdo02-pq";
  
 module.exports = {
   MONGODB_URI,
