@@ -13,8 +13,27 @@ const AgreementForm = () => {
             data[pair[0]] = pair[1]
         }
 
-        axios.post('./oauth/email', data).then((res) => {
-            console.log("Submit succes" + res);
+        axios.post('./email/send', {
+            agreementType: 1,
+            placeholders: data,
+            mailDetails: {
+                toAddress: ["kushagra0304@gmail.com"]
+            }
+        },{
+            responseType: 'arraybuffer', 
+        }).then((res) => {
+            const blob = new Blob([res.data], { type: 'application/pdf' });
+
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'filename.pdf'; // Set the desired file name
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            window.URL.revokeObjectURL(url);
         }).catch((err) => {
             console.log("Submit unsuces" + err);
         })

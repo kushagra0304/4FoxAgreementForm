@@ -3,6 +3,27 @@
 const jwt = require('jsonwebtoken');
 const config = require('../utils/config');
 
+class CustomJWTError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = 'JsonWebTokenError';
+    }
+}
+
+class CustomJWTTimeError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = 'JWTTimeError';
+    }
+}
+
+class CustomNoJWTError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = 'NoTokenError';
+    }
+}
+
 const invalidActiveTokens = new Set();
 
 const create = (data, expiresIn) => {
@@ -21,31 +42,37 @@ const invalidate = (token) => {
     invalidActiveTokens.add(token);
 }
 
-const verify = (token) => {
-    if(invalidActiveTokens.has(token)) {
-        return false;
-    }
-
-    try {
-        jwt.verify(token, config.TOKEN_SECRET)
-    } catch(err) {
-        invalidActiveTokens.add(token);
-        return false;
-    }
-    
-    return true;
-}
-
-const decode = (token) => {
+// This will return nothing if token is valid
+// And will throw error if token is invalid
+const verify = async (token) => {
     let decodedToken = null;
+
+    if(!token) {
+        throw new CustomNoJWTError("Token not provided");
+    }
+
+    if(invalidActiveTokens.has(token)) {
+        throw new CustomJWTError("Custom Invalid token");
+    }
 
     try {
         decodedToken = jwt.verify(token, config.TOKEN_SECRET)
     } catch(err) {
-        return null;
+        invalidActiveTokens.add(token);
+        throw err;
     }
-    
-    return decodedToken;
+
+    if(((Date.now()/1000)-decodedToken.iat) > 3600) {
+        invalidActiveTokens.add(token);
+        throw new CustomJWTTimeError();
+    }
+}
+
+// This will return only data extracted from valid token.
+// Always call verify before calling this
+const decode = (token) => {
+    decodedToken = jwt.verify(token, config.TOKEN_SECRET)
+    return decodedToken.data;
 }
 
 module.exports = {

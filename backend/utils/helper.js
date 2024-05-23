@@ -45,7 +45,7 @@ function extractSubdomain(url) {
   }
 
 const exposeTheApplicationToWWW = async () => {
-  console.log(config.PORT);
+    console.log("Trying to tunnel");
     const tunnel = await localtunnel(config.PORT, { subdomain: "hft75d6rcy" });
 
     tunnel.on('close', () => {

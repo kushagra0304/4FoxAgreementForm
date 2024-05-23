@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-if(process.env.ENVIROMENT == "development") {
+if(process.env.ENVIROMENT === "development") {
   require('dotenv').config();
 }
 
@@ -17,15 +17,29 @@ const generateTokenSecret = (length = 32) => {
 // Port will be provided my render servers. 
 // Also 10000 is the default port set by render servers
 const PORT = process.env.PORT || 10000;
-const MONGODB_URI = process.env.MONGODB_URI;
 const ENVIROMENT = process.env.ENVIROMENT;
-const SERVER_DOMAIN = ENVIROMENT === "development" ? "https://hft75d6rcy.loca.lt" : "https://fourfoxagreementform.onrender.com";
-const TOKEN_SECRET = generateTokenSecret();
+const MONGODB_URI = ENVIROMENT === "development" ? process.env.MONGODB_URI_DEV : process.env.MONGODB_URI_PROD;
+const TUNNEL_SERVICE = process.env.TUNNEL_SERVICE
+let SERVER_DOMAIN = "https://fourfoxagreementform.onrender.com";
+if(ENVIROMENT === "development") {
+  if(TUNNEL_SERVICE === 'loca') {
+    SERVER_DOMAIN = "https://hft75d6rcy.loca.lt"
+  } else if(TUNNEL_SERVICE === 'serveo') {
+    SERVER_DOMAIN = "https://fourfox.serveo.net"
+  }
+}
+// const TOKEN_SECRET = generateTokenSecret();
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const TOKEN_SECRET = "fgethy3uf47hu384bfhejnimdo02-pq";
  
 module.exports = {
   MONGODB_URI,
   PORT,
   ENVIROMENT,
   SERVER_DOMAIN,
-  TOKEN_SECRET
+  TOKEN_SECRET,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  TUNNEL_SERVICE
 };

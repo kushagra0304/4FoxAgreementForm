@@ -1,13 +1,9 @@
 const router = require('express').Router();
 const axios = require('axios');
-const PizZip = require("pizzip");
-const Docxtemplater = require("docxtemplater");
-const fs = require("fs");
-const path = require("path");
 const config = require('../utils/config');
 const logger = require('../utils/logger');
-// const jwt = require('jsonwebtoken');
 const jwt = require('../utils/jwt')
+const userModel = require('../schemas/user');
 
 function generateRandomStateOfLen10() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -19,9 +15,6 @@ function generateRandomStateOfLen10() {
 }
 
 const states = new Set();
-const tokens = new Set();
-const users = {};
-const invalidActiveTokens = new Set();
 
 // The following endpoint is called by zoho after successful user authentication.
 // This endpoint is supposed to be set at https://api-console.zoho.com in "Authorized Redirect URIs" field of "client details" form
@@ -33,11 +26,12 @@ router.get('/callback', async (request, response) => {
     let accessTokenRes;
     let accountDetailsRes;
 
-    // debug
-    logger.debug("location: " + location + ", code: " + code + ", state: " + state + ", accountsServer: " + accountsServer);
+    logger.debug("location: " + location + ", code: " + code + ", state: " + state + ", accountsServer: " + accountsServer); // debug
+
 
     if(!state || !states.has(state)) {
-        return response.status(401).send();
+        response.status(401).send();
+        return;
     } else {
         states.delete(state);
     }
@@ -46,194 +40,114 @@ router.get('/callback', async (request, response) => {
     const scope = `ZohoMail.messages.CREATE,ZohoMail.accounts.READ`;
     
     // Fetching authorization code
-    // debug
-    logger.debug("Fetching authorization code");
+    logger.debug("Fetching authorization code"); // debug
     try {
-        accessTokenRes = await axios.post(`${accountsServer}/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=${redirect_uri}&scope=${scope}`);
-        // tokens.add(token);
-        // users[token] = {
-        //     authToken: accessTokenRes.data
-        // }
+        accessTokenRes = await axios.post(`${accountsServer}/oauth/v2/token?code=${code}&grant_type=authorization_code&client_id=${config.CLIENT_ID}&client_secret=${config.CLIENT_SECRET}&redirect_uri=${redirect_uri}&scope=${scope}`);
     } catch(error) {
-        // debug
-        logger.debug("Failed to fetch authorization code");
-        logger.debug(error);
-        return response.status(401).send();
+        logger.debug("Failed to fetch authorization code"); // debug
+        logger.debug(error); // debug
+        response.status(401).send();
+        return;
     }
-    // debug
-    logger.debug("Authorization code fetched successfully.");
+    logger.debug("Authorization code fetched successfully."); // debug
 
     // Fetching account details of the user
-    // debug
-    logger.debug("Fetching account details of the user");
+    logger.debug("Fetching account details of the user"); // debug
     try {
         accountDetailsRes = await axios.get(`https://mail.zoho.${location}/api/accounts`, {
             headers: {
                 "Authorization": `Zoho-oauthtoken ${accessTokenRes.data.access_token}`
             }
         });
-
         // users[token].accountDetails = data.data[0]
     } catch(error) {
-        // debug
-        logger.debug("Failed to fetch account details of the user");
-        logger.debug(error);
-        return response.status(401).send();
+        logger.debug("Failed to fetch account details of the user"); // debug
+        logger.debug(error); // debug
+        response.status(401).send();
+        return;
     }
-    // debug
-    logger.debug("Account details fetched successfully");
+    logger.debug("Account details fetched successfully"); // debug
+
+    let userId;
+
+    try {
+        logger.debug("Checking if user exist in the DB"); // debug
+        const emailAddress = accountDetailsRes.data.data[0].primaryEmailAddress
+        const doc = await userModel.findOne({ emailAddress: emailAddress});
+
+        if(doc){
+            logger.debug("User exists"); // debug
+
+            const criteria = { emailAddress: emailAddress };
+            const update = { $set: { 
+                accessToken: accessTokenRes.data.access_token,
+                refreshToken: accessTokenRes.data.refresh_token,
+                expiresAt: Date.now() + accessTokenRes.data.expires_in,
+                zohoAccountId: accountDetailsRes.data.data[0].accountId,
+            } };
+            const options = { new: true, useFindAndModify: false };
+
+            const updatedUser = await userModel.findOneAndUpdate(criteria, update, options);
+            userId = updatedUser._id.toString();
+            logger.debug("User updated: ", updatedUser); // debug
+        } else {
+            logger.debug("User does not exist"); // debug
+            const newUser = new userModel({
+                accessToken: accessTokenRes.data.access_token,
+                refreshToken: accessTokenRes.data.refresh_token,
+                expiresAt: Date.now() + accessTokenRes.data.expires_in,
+                emailAddress: accountDetailsRes.data.data[0].primaryEmailAddress,
+                emails: [],
+                zohoAccountId: accountDetailsRes.data.data[0].accountId,
+            })
+            const savedNewUser = await newUser.save();
+            userId = savedNewUser._id.toString();
+            logger.debug("New user saved in DB: ", savedNewUser); // debug
+        }
+    } catch(error) {
+        logger.debug("Failed to update DB"); // debug
+        logger.debug(error); // debug
+        response.status(500).send();
+        return;
+    }
 
     const dataForToken = {
-        email: accountDetailsRes.data.data[0].emailAddress[0].mailId
+        userId: userId
     }
-    const token = jwt.create(dataForToken, 60*60*24);
+    const token = jwt.create(dataForToken, 60*60*24*7);
 
-    logger.debug(token);
-
-    response.cookie('userToken', token, { maxAge: 86400000, httpOnly: true, secure: true });
+    response.cookie('userToken', token, { httpOnly: true, secure: true, sameSite: "strict" });
     response.setHeader('Location', config.SERVER_DOMAIN);
     response.status(302);
 
-    return response.send();
-})
+    response.send();
+});
 
 router.get('/stateForOAuth', async (request, response) => {
     const state = generateRandomStateOfLen10();
     states.add(state);
-    return response.send(state);
-})
+    response.send(state);
+});
 
 router.get('/logout', async (request, response) => {
     const { userToken } = request.cookies
-    invalidActiveTokens.add(userToken);
+    jwt.invalidate(userToken);
     response.clearCookie("userToken");
-    return response.status(200).send();
-})
+    response.status(200).send();
+});
 
 router.get('/checkJWT', async (request, response) => {
-    const { userToken } = request.cookies
-    
-    if(!jwt.verify(userToken)) {
-        response.clearCookie("userToken");
-        return response.status(401).json({ error: "Invalid Token" });
+    if(!request.userId) {
+        response.status(401);
     }
 
-    let decodedToken = jwt.decode(userToken);
+    response.send();
+    return;
+});
 
-    if((decodedToken.exp-(Date.now()/1000)) <= 3600) {
-        jwt.invalidate(userToken);
-        const newToken = jwt.create(decodedToken.data, 60*60*24);
-        response.cookie('userToken', newToken, { maxAge: 86400000, httpOnly: true, secure: true });
-    }
-
-    return response.send();
-})
-
-router.post('/email', async (request, response) => {
-    const { userToken } = request.cookies
-    const { body } = request
-
-    if(!tokens.has(userToken)){
-        response.clearCookie("userToken");
-        return response.status(401).send();
-    }
-
-    const user = users[userToken]
-
-    const content = fs.readFileSync(
-        path.resolve(__dirname, "template.docx"),
-        "binary"
-    );
-
-    const zip = new PizZip(content);
-
-    const doc = new Docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-    });
-
-    doc.render({
-        DateOfAgreementExecution: body.DateOfAgreementExecution,
-        ClientName: body.ClientName,
-        ConstitutionOfBusiness: body.ConstitutionOfBusiness,
-        ClientAddress: body.ClientAddress,
-        SellersRepresentativeDesignation: body.SellersRepresentativeDesignation,
-        AgreementTimePeriod: body.AgreementTimePeriod,
-        MarketPlace: body.MarketPlace,
-        PackageDuration: body.PackageDuration,
-        AdvancePackageAmount: body.AdvancePackageAmount,
-        TermsConditionsOfSales: body.TermsConditionsOfSales
-    });
-
-    // Get the zip document and generate it as a nodebuffer
-    const buf = doc.getZip().generate({
-        type: "nodebuffer",
-        // compression: DEFLATE adds a compression step.
-        // For a 50MB output document, expect 500ms additional CPU time
-        compression: "DEFLATE",
-    });
-
-    let fileRes;
-
-    try {
-
-        const headers = {
-            'Content-Type': 'application/octet-stream',
-            "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
-        };
-
-        fileRes = await axios.post(
-            `https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages/attachments?fileName=Agreement-form.docx`, 
-            buf, 
-            { headers }
-        )
-
-        console.log(fileRes)
-
-    } catch(error) {
-        return response.status(500).send("error sending file");
-    }
-
-
-    const data = {
-        fromAddress: user.accountDetails.primaryEmailAddress,
-        toAddress: body.emailAddressOfRecipient,
-        ccAddress: body.emailAddressOfCC,
-        // bccAddress: "restadmin1@restapi.com",
-        subject: body.subject,
-        content: body.bodyOfMail,
-        askReceipt : "yes",
-        attachments: [
-            {
-               storeName: fileRes.data.data.storeName,
-               attachmentPath: fileRes.data.data.attachmentPath,
-               attachmentName: fileRes.data.data.attachmentName
-            }
-         ]
-    }
-
-    let res;
-
-    // console.log("Ehhhh");
-
-    try {
-        res = await axios.post(`https://mail.zoho.in/api/accounts/${user.accountDetails.accountId}/messages`, data, {
-            headers: {
-                "Authorization": `Zoho-oauthtoken ${user.authToken.access_token}`
-            }
-        })
-
-        console.log(res);
-    } catch(error) {
-        console.log(error)
-        return response.status(500).send(error)
-    }
-
-    if(res.data.status.code === 200) {
-        response.send();
-    } else {
-        response.status(500).send()
-    }
-})
+router.get('/redirect_url', async (request, response) => {
+    response.send(config.SERVER_DOMAIN);
+    return;
+});
 
 module.exports = router;

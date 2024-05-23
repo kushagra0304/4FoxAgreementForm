@@ -1,5 +1,9 @@
 const { default: mongoose } = require('mongoose');
 const morgan = require('morgan');
+const logger = require('../utils/logger');
+const jwt = require('../utils/jwt')
+const zohoTokens = require('./zohoTokens');
+const userModel = require('../schemas/user');
 
 // This one logs any request made to the server
 // One important thing to note. it only logs those request which have a response.
@@ -27,39 +31,118 @@ const morganRequestLogger = morgan((tokens, req, res) => {
 
 const handleDataBaseConnection = (request, response, next) => {
   if (mongoose.connection.readyState !== 1) {
-    response.status(503).json({
+    return response.status(503).json({
       error: 'Database not connected',
     });
-  } else {
-    // It's important next() is called inside this else block.
-    // Because we need to end the request-response cycle.
+  }
+   next();
+};
+
+const checkJWT = async (request, response, next) => {
+  const { userToken } = request.cookies;
+
+  try {
+    await jwt.verify(userToken);
+
+    const decodedTokenData = jwt.decode(userToken);
+
+    request.userId = decodedTokenData.userId;
+  } catch(error) {
+    if(error.name === 'NoTokenError') {
+      request.userId = null;
+      next();
+      return;
+    } else if (error.name === 'JsonWebTokenError') {
+      response.clearCookie("userToken");
+      return response.status(401).json({ error: error.message });
+    } else if (error.name === 'JWTTimeError') {
+      const decodedTokenData = jwt.decode(userToken);
+
+      request.userId = decodedTokenData.userId;
+
+      const newToken = jwt.create(decodedTokenData, 60*60*24*7);
+      response.cookie('userToken', newToken, { httpOnly: true, secure: true, sameSite: "strict" });
+    } else {
+      next(error);
+      return;
+    }
+  }
+
+  next();
+};
+
+const setAccessToken = async (request, response, next) => {
+  const { userId } = request;
+
+  if(!userId) {
+    request.accessToken = null;
     next();
+    return;
   }
+
+  try {
+    request.accessToken = await zohoTokens.getAccessToken(userId);
+  } catch(error) {
+    response.clearCookie("userToken");
+    response.status(500).json({ error: error.message });
+    return;
+  }
+
+  next();
 };
 
-const errorHandler = (error, request, response, next) => {
-  console.error(error.message);
+const setUserData = async (request, response, next) => {
+  const { userId } = request;
 
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' });
-  } if (error.name === 'ValidationError') {
-    return response.status(400).json({ error: error.message });
+  if(!userId) {
+    request.userData = null;
+    next();
+    return;
   }
-  // } if (error.name === 'JsonWebTokenError') {
-  //   response.clearCookie("userToken");
-  //   return response.status(401).json({ error: error.message });
-  // }
 
-  next(error);
-};
+  let user;
+
+  try {
+    user = await userModel.findById(userId);
+  } catch(error) {
+    response.clearCookie("userToken");
+    response.status(500).json({ error: error.message });
+    return;
+  }
+
+  request.userData = {
+    zohoAccountId: user.zohoAccountId,
+    emailAddress: user.emailAddress
+  }
+  next();
+}
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' });
+};
+
+const errorHandler = (error, request, response, next) => {
+  logger.debug(error.name);
+  logger.debug(error.message);
+  logger.debug(error)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  } 
+  
+  if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message });
+  } 
+
+  next(error);
 };
 
 module.exports = {
   morganRequestLogger,
   handleDataBaseConnection,
   errorHandler,
-  unknownEndpoint
+  unknownEndpoint,
+  checkJWT,
+  setAccessToken,
+  setUserData
 }

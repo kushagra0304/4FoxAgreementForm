@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "ENVIROMENT=development nodemon index.js",
+    "dev-loca": "ENVIROMENT=development TUNNEL_SERVICE=loca nodemon index.js",
+    "dev-serveo": "ENVIROMENT=development TUNNEL_SERVICE=serveo nodemon index.js & ssh -R fourfox:80:localhost:10000 serveo.net",
     "debug": "ENVIROMENT=debug node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,18 +16,14 @@
     "axios": "^1.6.8",
     "cookie-parser": "^1.4.6",
     "cross-env": "^7.0.3",
-    "docx-pdf": "^0.0.1",
-    "docxtemplater": "^3.47.2",
     "express": "^4.19.2",
-    "express-async-errors": "^3.1.1",
     "jsonwebtoken": "^9.0.2",
+    "localtunnel": "^2.0.2",
     "mongoose": "^8.3.3",
-    "pdf-lib": "^1.17.1",
-    "pizzip": "^3.1.7"
+    "puppeteer": "^22.9.0"
   },
   "devDependencies": {
     "dotenv": "^16.4.5",
-    "localtunnel": "^2.0.2",
     "morgan": "^1.10.0",
     "nodemon": "^3.1.0"
   }
