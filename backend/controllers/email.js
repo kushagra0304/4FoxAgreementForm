@@ -32,8 +32,8 @@ router.post('/send', async (request, response) => {
 
         const data = {
             fromAddress: userData.emailAddress,
-            toAddress: mailDetails.toAddress,
-            ccAddress: mailDetails.ccAddress,
+            toAddress: (mailDetails.toAddress || []).join(','),
+            ccAddress: (mailDetails.ccAddress || []).join(','),
             subject: mailDetails.subject,
             content: mailDetails.content,
             askReceipt : "yes",
@@ -45,6 +45,8 @@ router.post('/send', async (request, response) => {
                 }
             ]
         }
+
+        console.log("Helo");
 
         sendMailRes = await axios.post(`https://mail.zoho.in/api/accounts/${userData.zohoAccountId}/messages`, data, {
             headers: {
