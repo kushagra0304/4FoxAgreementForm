@@ -11,15 +11,14 @@ export const getStateForOAuth = async () => {
 
 export const getCheckJWT = async () => {
     try {
-        return await axios.get(`./oauth/checkJWT`);
-    } catch (error) {
-        const { response } = error
+        const res = await axios.get(`./oauth/checkJWT`);
 
-        if(response.status !== 401) {
-            console.log(error);
-            console.log("Error connecting to server")        
+        if(res.status !== 200) {
+            return false;
         }
 
-        return response;
+        return true;
+    } catch (error) {
+        return false;
     }
 }

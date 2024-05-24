@@ -4,6 +4,7 @@ const config = require('../utils/config');
 const logger = require('../utils/logger');
 const jwt = require('../utils/jwt')
 const userModel = require('../schemas/user');
+const path = require('path');
 
 function generateRandomStateOfLen10() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -129,16 +130,22 @@ router.get('/stateForOAuth', async (request, response) => {
     response.send(state);
 });
 
-router.get('/logout', async (request, response) => {
+router.get('/logout', async (request, response, next) => {
+    if(request.errorInAuth) {
+        next({ name: "ValidationError" });
+        return;
+    }
+
     const { userToken } = request.cookies
     jwt.invalidate(userToken);
     response.clearCookie("userToken");
     response.status(200).send();
 });
 
-router.get('/checkJWT', async (request, response) => {
-    if(!request.userId) {
-        response.status(401);
+router.get('/checkJWT', async (request, response, next) => {
+    if(request.errorInAuth) {
+        next({ name: "ValidationError" });
+        return;
     }
 
     response.send();

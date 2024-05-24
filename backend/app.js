@@ -11,8 +11,10 @@ const cookieParser = require('cookie-parser');
 const config = require('./utils/config');
 const oauthRouter = require('./controllers/oauth');
 const emailRouter = require('./controllers/email');
+const searchRouter = require('./controllers/search');
 const middlewares = require('./utils/middlewares');
 const helper = require('./utils/helper');
+const cache = require('./utils/cache');
 
 // ---------------------------------------------------------
 // Initialization
@@ -37,8 +39,15 @@ mongoose.connect(url).then(() => {
 
 mongoose.Schema.Types.String.checkRequired(v => typeof v === 'string');
 // ---------------------------------------------------------
-// Middleware list
+// Init Cache
 
+cache.initAddressCache().then(() => {
+  console.log("Address cache init successfully");
+}).catch((error) => {
+  console.log("Address cache init not success: " + error.message);
+})
+// ---------------------------------------------------------
+// Middleware list
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
 if (config.ENVIROMENT === 'development') {
@@ -52,6 +61,7 @@ app.use(middlewares.setUserData)
 // Controllers
 app.use('/oauth', oauthRouter);
 app.use('/email', emailRouter);
+app.use('/search', searchRouter);
 // ----------------------------
 // app.use(middlewares.unknownEndpoint);
 app.use(middlewares.errorHandler); // this has to be the last loaded middleware.

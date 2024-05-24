@@ -79,6 +79,16 @@ const exposeTheApplicationToWWW = async () => {
     console.log('Public IP Address:', ipAddress);
 }
 
+function generateRandomStateOfLen10() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let state = '';
+  for (let i = 0; i < 10; i++) {
+      state += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return state;
+}
+
 module.exports = {
-    exposeTheApplicationToWWW
+    exposeTheApplicationToWWW,
+    generateRandomStateOfLen10
 }

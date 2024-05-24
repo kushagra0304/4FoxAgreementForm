@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "dev": "ENVIROMENT=development nodemon index.js",
     "dev-loca": "ENVIROMENT=development TUNNEL_SERVICE=loca nodemon index.js",
     "dev-serveo": "ENVIROMENT=development TUNNEL_SERVICE=serveo nodemon index.js & ssh -R fourfox:80:localhost:10000 serveo.net",
     "debug": "ENVIROMENT=debug node index.js",

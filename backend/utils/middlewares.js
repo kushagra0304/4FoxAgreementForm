@@ -4,6 +4,7 @@ const logger = require('../utils/logger');
 const jwt = require('../utils/jwt')
 const zohoTokens = require('./zohoTokens');
 const userModel = require('../schemas/user');
+const path = require('path');
 
 // This one logs any request made to the server
 // One important thing to note. it only logs those request which have a response.
@@ -41,6 +42,13 @@ const handleDataBaseConnection = (request, response, next) => {
 const checkJWT = async (request, response, next) => {
   const { userToken } = request.cookies;
 
+  if(!userToken) { 
+    request.errorInAuth = true;
+    request.authError = {};
+    next({ name: "ValidationError" })
+    return;
+  }
+
   try {
     await jwt.verify(userToken);
 
@@ -48,24 +56,17 @@ const checkJWT = async (request, response, next) => {
 
     request.userId = decodedTokenData.userId;
   } catch(error) {
-    if(error.name === 'NoTokenError') {
-      request.userId = null;
-      next();
-      return;
-    } else if (error.name === 'JsonWebTokenError') {
-      response.clearCookie("userToken");
-      return response.status(401).json({ error: error.message });
-    } else if (error.name === 'JWTTimeError') {
+    if (error.name === 'JWTTimeError') {
       const decodedTokenData = jwt.decode(userToken);
-
       request.userId = decodedTokenData.userId;
-
       const newToken = jwt.create(decodedTokenData, 60*60*24*7);
       response.cookie('userToken', newToken, { httpOnly: true, secure: true, sameSite: "strict" });
-    } else {
-      next(error);
+      next();
       return;
     }
+
+    request.errorInAuth = true;
+    request.authError = error;
   }
 
   next();
@@ -74,18 +75,18 @@ const checkJWT = async (request, response, next) => {
 const setAccessToken = async (request, response, next) => {
   const { userId } = request;
 
-  if(!userId) {
-    request.accessToken = null;
-    next();
+  if(!userId) { 
+    request.errorInAuth = true;
+    request.authError = {};
+    next({ name: "ValidationError" })
     return;
   }
 
   try {
     request.accessToken = await zohoTokens.getAccessToken(userId);
   } catch(error) {
-    response.clearCookie("userToken");
-    response.status(500).json({ error: error.message });
-    return;
+    request.errorInAuth = true;
+    request.authError = error;
   }
 
   next();
@@ -94,26 +95,25 @@ const setAccessToken = async (request, response, next) => {
 const setUserData = async (request, response, next) => {
   const { userId } = request;
 
-  if(!userId) {
-    request.userData = null;
-    next();
+  if(!userId) { 
+    request.errorInAuth = true;
+    request.authError = {};
+    next({ name: "ValidationError" })
     return;
   }
-
-  let user;
 
   try {
-    user = await userModel.findById(userId);
-  } catch(error) {
-    response.clearCookie("userToken");
-    response.status(500).json({ error: error.message });
-    return;
-  }
+    const user = await userModel.findById(userId);
 
-  request.userData = {
-    zohoAccountId: user.zohoAccountId,
-    emailAddress: user.emailAddress
+    request.userData = {
+      zohoAccountId: user.zohoAccountId,
+      emailAddress: user.emailAddress
+    }
+  } catch(error) {
+    request.errorInAuth = true;
+    request.authError = error;
   }
+  
   next();
 }
 
@@ -122,16 +122,19 @@ const unknownEndpoint = (request, response) => {
 };
 
 const errorHandler = (error, request, response, next) => {
-  logger.debug(error.name);
-  logger.debug(error.message);
-  logger.debug(error)
-
   if (error.name === 'CastError') {
+    logger.debug(error.name);
+    logger.debug(error.message);
+    logger.debug(error)
     return response.status(400).send({ error: 'malformatted id' });
   } 
   
   if (error.name === 'ValidationError') {
-    return response.status(400).json({ error: error.message });
+    logger.debug(request.authError.name);
+    logger.debug(request.authError.message);
+    logger.debug(request.authError)
+    response.clearCookie();
+    response.status(401).json({ error: request.authError.message });
   } 
 
   next(error);
@@ -144,5 +147,5 @@ module.exports = {
   unknownEndpoint,
   checkJWT,
   setAccessToken,
-  setUserData
+  setUserData,
 }

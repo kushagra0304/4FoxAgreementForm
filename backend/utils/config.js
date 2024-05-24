@@ -28,7 +28,7 @@ if(ENVIROMENT === "development") {
     SERVER_DOMAIN = "https://fourfox.serveo.net"
   }
 }
-const TOKEN_SECRET = generateTokenSecret();
+const TOKEN_SECRET = ENVIROMENT === "development" ? "ybhhufei7ghf7c7btv[=]'=[38hq" : generateTokenSecret();
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
  

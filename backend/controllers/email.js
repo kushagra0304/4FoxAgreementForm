@@ -4,14 +4,15 @@ const logger = require("../utils/logger");
 const router = require('express').Router();
 const emailModel = require('../schemas/email');
 
-router.post('/send', async (request, response) => {
+router.post('/send', async (request, response, next) => {
     try {
+        if(request.errorInAuth) {
+            next("ValidationError");
+            return;
+        }
+
         const { accessToken, userData, userId } = request
         const { agreementType, placeholders, mailDetails } = request.body 
-
-        if(!accessToken) {
-            throw new Error("Access token not set");            
-        }
 
         const headers = {
             'Content-Type': 'application/octet-stream',
@@ -46,8 +47,6 @@ router.post('/send', async (request, response) => {
             ]
         }
 
-        console.log("Helo");
-
         sendMailRes = await axios.post(`https://mail.zoho.in/api/accounts/${userData.zohoAccountId}/messages`, data, {
             headers: {
                 "Authorization": `Zoho-oauthtoken ${accessToken}`
@@ -69,8 +68,11 @@ router.post('/send', async (request, response) => {
         }
 
         for (const [key, value] of Object.entries(placeholders)) {
+            console.log(key, value);
             emailDataToSave[`agreementFormData_${key}`] = value;
         }
+
+        console.log(emailDataToSave);
 
         const newEmail = new emailModel(emailDataToSave);
 
