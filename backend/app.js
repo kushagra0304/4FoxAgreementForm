@@ -12,6 +12,7 @@ const config = require('./utils/config');
 const oauthRouter = require('./controllers/oauth');
 const emailRouter = require('./controllers/email');
 const searchRouter = require('./controllers/search');
+const downloadRouter = require('./controllers/download');
 const middlewares = require('./utils/middlewares');
 const helper = require('./utils/helper');
 const cache = require('./utils/cache');
@@ -62,6 +63,7 @@ app.use(middlewares.setUserData)
 app.use('/oauth', oauthRouter);
 app.use('/email', emailRouter);
 app.use('/search', searchRouter);
+app.use('/download', downloadRouter);
 // ----------------------------
 // app.use(middlewares.unknownEndpoint);
 app.use(middlewares.errorHandler); // this has to be the last loaded middleware.

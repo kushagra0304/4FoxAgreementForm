@@ -5,7 +5,7 @@ import Login from './components/Login'
 import { getCheckJWT } from './services/oauth';
 
 function App() {
-  const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [userLoggedIn, setUserLoggedIn] = useState(true);
 
   useEffect(() => {
     getCheckJWT().then((bool) => {

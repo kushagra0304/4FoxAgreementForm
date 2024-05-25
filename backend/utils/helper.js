@@ -2,6 +2,9 @@ const localtunnel = require('localtunnel');
 const config = require('./config');
 const fs = require('fs');
 const https = require('https');
+const addressModel = require('../schemas/address');
+const cache = require('./cache');
+const logger = require('./logger');
 
 function getPublicIPAddress() {
   return new Promise((resolve, reject) => {
@@ -88,7 +91,23 @@ function generateRandomStateOfLen10() {
   return state;
 }
 
+const saveAddresInDb = async (adderss) => {
+  try {
+    const newAddress = new addressModel(adderss);
+
+    const savedAddress = await newAddress.save();
+
+    cache.addAddressToCache(savedAddress.address);
+
+    return true;
+  } catch(error) {
+    logger.debug(error);
+    return false;
+  }
+}
+
 module.exports = {
     exposeTheApplicationToWWW,
-    generateRandomStateOfLen10
+    generateRandomStateOfLen10,
+    saveAddresInDb
 }

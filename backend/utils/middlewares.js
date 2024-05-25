@@ -45,7 +45,7 @@ const checkJWT = async (request, response, next) => {
   if(!userToken) { 
     request.errorInAuth = true;
     request.authError = {};
-    next({ name: "ValidationError" })
+    next();
     return;
   }
 
@@ -78,7 +78,7 @@ const setAccessToken = async (request, response, next) => {
   if(!userId) { 
     request.errorInAuth = true;
     request.authError = {};
-    next({ name: "ValidationError" })
+    next();
     return;
   }
 
@@ -98,7 +98,7 @@ const setUserData = async (request, response, next) => {
   if(!userId) { 
     request.errorInAuth = true;
     request.authError = {};
-    next({ name: "ValidationError" })
+    next();
     return;
   }
 
