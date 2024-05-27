@@ -93,7 +93,9 @@ router.post('/download', async (request, response) => {
     let pdfBuffer;
 
     try {
+        logger.debug(new Date());
         pdfBuffer = await generatePDF({ agreementType, placeholders });
+        logger.debug(new Date());
     } catch(error) {
         console.log(error)
         response.status(500).send("Error converting to pdf.");

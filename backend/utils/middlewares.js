@@ -40,7 +40,6 @@ const handleDataBaseConnection = (request, response, next) => {
 };
 
 const checkJWT = async (request, response, next) => {
-  logger.debug(new Date());
   const { userToken } = request.cookies;
 
   if(!userToken) { 
@@ -114,8 +113,7 @@ const setUserData = async (request, response, next) => {
     request.errorInAuth = true;
     request.authError = error;
   }
-  
-  logger.debug(new Date());
+
   next();
 }
 
