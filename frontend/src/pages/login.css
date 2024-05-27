@@ -1,0 +1,35 @@
+.loginPage {
+    height: 100vh;
+    position: relative;
+    padding: 0.75rem 0;
+
+    .loginCard {
+        position: absolute;
+        top: 50%;
+        transform: translate(0%, -50%);
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .logoBox {
+            box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+            width: max-content;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+
+            img {
+                height: 75px;
+            }
+        }
+        .logoBox:hover {
+            cursor: pointer;
+        }
+    }
+}

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const AgreementForm = () => {
+const Form = () => {
     const generate = (event) => {
         event.preventDefault()
 
@@ -212,4 +212,4 @@ const FormField = ({ label, id, type, placeholder, name }) => {
     );
 };
 
-export default AgreementForm;
+export default Form;
