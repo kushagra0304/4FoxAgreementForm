@@ -13,5 +13,11 @@ export const getRedirectURL = async () => {
 }
 
 export const getCheckJWT = async () => {
-    await axios.get(`./oauth/checkJWT`);
+    try {
+        await axios.get(`./oauth/checkJWT`);
+    } catch(error) {
+        return false;
+    }
+
+    return true;
 }
