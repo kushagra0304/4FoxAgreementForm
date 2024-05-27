@@ -65,7 +65,6 @@ const exposeTheApplicationToWWW = async () => {
 
     process.on("SIGINT", () => {
         tunnel.close();
-        process.exit();
     })
 
     // the assigned public url for your tunnel

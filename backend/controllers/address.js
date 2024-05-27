@@ -6,7 +6,7 @@ const cache = require("../utils/cache");
 router.get('', async (request, response) => {
     try {
         response.json({
-            addresses: cache.addresses
+            addresses: cache.getAddresses
         });
     } catch(error) {
         logger.debug(error)

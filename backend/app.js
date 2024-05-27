@@ -16,6 +16,7 @@ const downloadRouter = require('./controllers/download');
 const middlewares = require('./utils/middlewares');
 const helper = require('./utils/helper');
 const cache = require('./utils/cache');
+const logger = require('./utils/logger');
 
 // ---------------------------------------------------------
 // Initialization
@@ -47,8 +48,15 @@ cache.initAddressCache().then(() => {
 }).catch((error) => {
   console.log("Address cache init not success: " + error.message);
 })
+
+cache.initPptrBrowserInstance().then(() => {
+  console.log("Pptr browser instance init successfully");
+}).catch((error) => {
+  console.log("Pptr browser instance init not success: " + error.message);
+})
 // ---------------------------------------------------------
 // Middleware list
+if(config.ENVIROMENT === "development" || config.ENVIROMENT === "debug") { app.use(logger.measureRequestTime); }
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
 if (config.ENVIROMENT === 'development') {
