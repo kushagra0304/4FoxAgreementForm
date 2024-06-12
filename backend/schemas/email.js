@@ -8,7 +8,8 @@ const emailSchema = new mongoose.Schema({
     cc: { type: [String], required: true, default: [] },
     subject: { type: String, required: true },
     body: { type: String, required: true },
-    agreementType: { type: Number, required: true },
+    agreementType: { type: String, required: true },
+    clientAgreed: { type: Boolean, required: true, default: false },
     // Agreement form data will be defined when a document is created, like this agreementFormData_field(placeholder in template): value
 }, { strict: false });
 

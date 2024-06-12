@@ -21,7 +21,7 @@ const states = new Set();
 // This endpoint is supposed to be set at https://api-console.zoho.com in "Authorized Redirect URIs" field of "client details" form
 // The endpoint is: https://fourfoxagreementform.onrender.com/oauth/callback
 router.get('/callback', async (request, response) => {
-    const {location, code, state} = request.query;
+    const { location, code, state } = request.query;
     const accountsServer = request.query['accounts-server'];
 
     let accessTokenRes;
@@ -78,12 +78,12 @@ router.get('/callback', async (request, response) => {
 
         if(doc){
             logger.debug("User exists"); // debug
-
+            
             const criteria = { emailAddress: emailAddress };
             const update = { $set: { 
                 accessToken: accessTokenRes.data.access_token,
                 refreshToken: accessTokenRes.data.refresh_token,
-                expiresAt: Date.now() + accessTokenRes.data.expires_in,
+                expiresAt: ((new Date()).getTime())/1000 + accessTokenRes.data.expires_in,
                 zohoAccountId: accountDetailsRes.data.data[0].accountId,
             } };
             const options = { new: true, useFindAndModify: false };
@@ -96,7 +96,7 @@ router.get('/callback', async (request, response) => {
             const newUser = new userModel({
                 accessToken: accessTokenRes.data.access_token,
                 refreshToken: accessTokenRes.data.refresh_token,
-                expiresAt: Date.now() + accessTokenRes.data.expires_in,
+                expiresAt: ((new Date()).getTime())/1000 + accessTokenRes.data.expires_in,
                 emailAddress: accountDetailsRes.data.data[0].primaryEmailAddress,
                 emails: [],
                 zohoAccountId: accountDetailsRes.data.data[0].accountId,

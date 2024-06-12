@@ -5,12 +5,12 @@ import Login from './pages/Login';
 import Homepage from './pages/Homepage';
 
 function App() {
-  const [userLoggedIn, setUserLoggedIn] = useState(true);
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
 
   useEffect(() => {
     getCheckJWT().then((bool) => {
       if(bool) {
-        setUserLoggedIn(true)
+        setUserLoggedIn(bool)
       }
     })
   }, [])

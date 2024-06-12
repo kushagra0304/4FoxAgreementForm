@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 // id is created by mongoose when we save a document
-const addressSchema = new mongoose.Schema({
-    address: { type: String, required: true }
+const clientSchema = new mongoose.Schema({
+    emailId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Email', required: true }],
 });
 
-addressSchema.set('toJSON', {
+clientSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
@@ -15,6 +15,6 @@ addressSchema.set('toJSON', {
 
 // The first argument to the function below dictates the collection to put new documents in.
 // This is fragile
-const addressModel = mongoose.model('Address', addressSchema);
+const clientModel = mongoose.model('Client', clientSchema);
 
-module.exports = addressModel;
+module.exports = clientModel;

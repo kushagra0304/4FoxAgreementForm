@@ -1,24 +1,10 @@
 const logger = require("../utils/logger");
 const router = require('express').Router();
 const emailModel = require("../schemas/email");
-const { generatePDF } = require("../utils/generatePDF");
+const { generatePDF } = require("../utils/generateTemplate");
 const archiver = require('archiver');
 const fs = require('fs');
-
-function convertObject(originalObj) {
-    const newObj = {};
-    for (const key in originalObj) {
-        if (originalObj.hasOwnProperty(key)) {
-            if (key.startsWith('agreementFormData_')) {
-                const newKey = key.replace('agreementFormData_', '');
-                newObj[newKey] = originalObj[key];
-            } else {
-                newObj[key] = originalObj[key];
-            }
-        }
-    }
-    return newObj;
-}
+const { extractAgreementFormDataFieldsAndStripThem } = require("../utils/helper");
 
 router.post('', async (request, response) => {
     try {
@@ -43,7 +29,7 @@ router.post('', async (request, response) => {
                     throw new Error(`Document not found for ID: ${documentId}`);
                 }
                 
-                document = convertObject(document._doc);
+                document = extractAgreementFormDataFieldsAndStripThem(document._doc);
 
                 const pdfBuffer = await generatePDF({ placeholders: document, agreementType: document.agreementType });
 
@@ -74,7 +60,6 @@ router.post('', async (request, response) => {
 
         // Finalize the zip file
         zip.finalize();
-
     } catch(error) {
         logger.debug(`Error generating agreement forms: ${error.message}`);
         response.status(500).send(error.message);

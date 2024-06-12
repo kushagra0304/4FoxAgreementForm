@@ -29,7 +29,18 @@ const invalidActiveTokens = new Set();
 const create = (data, expiresIn) => {
     const dataForToken = { data };
 
-    const token = jwt.sign(
+    let token;
+
+    if(!expiresIn) {
+        token = jwt.sign(
+            dataForToken, 
+            config.TOKEN_SECRET,
+        )
+
+        return token;
+    }
+
+    token = jwt.sign(
         dataForToken, 
         config.TOKEN_SECRET,
         { expiresIn: expiresIn } 
@@ -58,11 +69,12 @@ const verify = async (token) => {
     try {
         decodedToken = jwt.verify(token, config.TOKEN_SECRET)
     } catch(err) {
+        // This catches the token expiry error
         invalidActiveTokens.add(token);
         throw err;
     }
 
-    if(((Date.now()/1000)-decodedToken.iat) > 3600) {
+    if((decodedToken.exp - ((new Date().getTime)/1000)) < 86400) {
         invalidActiveTokens.add(token);
         throw new CustomJWTTimeError();
     }

@@ -1,13 +1,15 @@
 const { default: axios } = require("axios");
-const { generatePDF } = require("../utils/generatePDF");
+const { generatePDF } = require("../utils/generateTemplate");
 const logger = require("../utils/logger");
 const router = require('express').Router();
 const emailModel = require('../schemas/email');
+const { addBrTagsInplaceNewline, addAddresses } = require("../utils/helper");
+const { createClientPageURL } = require("../utils/client");
 
 router.post('/send', async (request, response, next) => {
     try {
         if(request.errorInAuth) {
-            next("ValidationError");
+            next({name: "ValidationError"});
             return;
         }
 
@@ -31,32 +33,6 @@ router.post('/send', async (request, response, next) => {
             throw new error("Failed to upload attachment to zoho");
         }
 
-        const data = {
-            fromAddress: userData.emailAddress,
-            toAddress: (mailDetails.toAddress || []).join(','),
-            ccAddress: (mailDetails.ccAddress || []).join(','),
-            subject: mailDetails.subject,
-            content: mailDetails.content,
-            askReceipt : "yes",
-            attachments: [
-                {
-                storeName: uploadAttachmentRes.data.data.storeName,
-                attachmentPath: uploadAttachmentRes.data.data.attachmentPath,
-                attachmentName: uploadAttachmentRes.data.data.attachmentName
-                }
-            ]
-        }
-
-        sendMailRes = await axios.post(`https://mail.zoho.in/api/accounts/${userData.zohoAccountId}/messages`, data, {
-            headers: {
-                "Authorization": `Zoho-oauthtoken ${accessToken}`
-            }
-        })
-
-        if(sendMailRes.data.status.code !== 200) {
-            throw new Error("Could not send mail");
-        } 
-
         const emailDataToSave = {
             userId: userId,
             from: userData.emailAddress,
@@ -65,6 +41,7 @@ router.post('/send', async (request, response, next) => {
             subject: mailDetails.subject || "",
             body: mailDetails.content || "",
             agreementType: agreementType,
+            clientAgreed: false,
         }
 
         for (const [key, value] of Object.entries(placeholders)) {
@@ -72,15 +49,40 @@ router.post('/send', async (request, response, next) => {
             emailDataToSave[`agreementFormData_${key}`] = value;
         }
 
-        console.log(emailDataToSave);
+        const savedEmail = await emailModel.create(emailDataToSave)
 
-        const newEmail = new emailModel(emailDataToSave);
+        userData.emails.push(savedEmail._id);
+        userData.save();
 
-        const savedEmail = await newEmail.save();
+        const clientPageURL = await createClientPageURL(savedEmail._id);
 
-        logger.debug(savedEmail);
+        const data = {
+            fromAddress: userData.emailAddress,
+            toAddress: (savedEmail.to || []).join(','),
+            ccAddress: (savedEmail.cc || []).join(','),
+            subject: savedEmail.subject,
+            content: addBrTagsInplaceNewline(savedEmail.body) + "<br>" + `Agreement link -> ${clientPageURL}`,
+            askReceipt : "yes",
+            attachments: [{
+                storeName: uploadAttachmentRes.data.data.storeName,
+                attachmentPath: uploadAttachmentRes.data.data.attachmentPath,
+                attachmentName: uploadAttachmentRes.data.data.attachmentName
+            }]
+        }
+
+        const sendMailRes = await axios.post(`https://mail.zoho.in/api/accounts/${userData.zohoAccountId}/messages`, data, {
+            headers: {
+                "Authorization": `Zoho-oauthtoken ${accessToken}`
+            }
+        })
+
+        if(sendMailRes.data.status.code !== 200) {
+            throw new Error("Could not send mail");
+        }
 
         response.send();
+
+        await addAddresses(mailDetails.toAddress, mailDetails.ccAddress);
     } catch(error) {
         logger.debug(error);
         response.status(500).send(error.message);

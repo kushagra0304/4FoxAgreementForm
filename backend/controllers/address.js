@@ -1,4 +1,3 @@
-const addressModel = require("../schemas/address");
 const logger = require("../utils/logger");
 const router = require('express').Router();
 const cache = require("../utils/cache");
@@ -6,7 +5,7 @@ const cache = require("../utils/cache");
 router.get('', async (request, response) => {
     try {
         response.json({
-            addresses: cache.getAddresses
+            addresses: cache.getAddresses()
         });
     } catch(error) {
         logger.debug(error)

@@ -12,3 +12,11 @@ export const postDownloadPdf = async (agreementType, placeholders) => {
 
     return data;
 }
+
+export const postSendEmail = async (agreementType, placeholders, mailDetails) => {
+    await axios.post(`./email/send`, {
+        agreementType: agreementType,
+        placeholders: placeholders,
+        mailDetails: mailDetails
+    });
+}

@@ -5,6 +5,7 @@ const jwt = require('../utils/jwt')
 const zohoTokens = require('./zohoTokens');
 const userModel = require('../schemas/user');
 const path = require('path');
+const fs = require('fs');
 
 // This one logs any request made to the server
 // One important thing to note. it only logs those request which have a response.
@@ -39,22 +40,20 @@ const handleDataBaseConnection = (request, response, next) => {
    next();
 };
 
-const checkJWT = async (request, response, next) => {
-  const { userToken } = request.cookies;
-
-  if(!userToken) { 
-    request.errorInAuth = true;
-    request.authError = {};
-    next();
-    return;
-  }
-
+const authenticateUser = async (request, response, next) => {
   try {
+    const { userToken } = request.cookies;
     await jwt.verify(userToken);
-
     const decodedTokenData = jwt.decode(userToken);
-
     request.userId = decodedTokenData.userId;
+
+    const user = await userModel.findById(request.userId);
+    if(!user) {
+      throw new Error("User not found");
+    }
+    request.userData = user;
+
+    request.accessToken = await zohoTokens.getAccessToken(request.userData);
   } catch(error) {
     if (error.name === 'JWTTimeError') {
       const decodedTokenData = jwt.decode(userToken);
@@ -70,72 +69,33 @@ const checkJWT = async (request, response, next) => {
   }
 
   next();
-};
-
-const setAccessToken = async (request, response, next) => {
-  const { userId } = request;
-
-  if(!userId) { 
-    request.errorInAuth = true;
-    request.authError = {};
-    next();
-    return;
-  }
-
-  try {
-    request.accessToken = await zohoTokens.getAccessToken(userId);
-  } catch(error) {
-    request.errorInAuth = true;
-    request.authError = error;
-  }
-
-  next();
-};
-
-const setUserData = async (request, response, next) => {
-  const { userId } = request;
-
-  if(!userId) { 
-    request.errorInAuth = true;
-    request.authError = {};
-    next();
-    return;
-  }
-
-  try {
-    const user = await userModel.findById(userId);
-
-    request.userData = {
-      zohoAccountId: user.zohoAccountId,
-      emailAddress: user.emailAddress
-    }
-  } catch(error) {
-    request.errorInAuth = true;
-    request.authError = error;
-  }
-
-  next();
 }
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' });
+const unknownEndpoint = async (request, response) => {
+  response.status(404).send((await fs.promises.readFile(path.join(__dirname, "../public/notFound.html"))).toString());
 };
 
-const errorHandler = (error, request, response, next) => {
+const errorHandler = async (error, request, response, next) => {
   if (error.name === 'CastError') {
     logger.debug(error.name);
     logger.debug(error.message);
     logger.debug(error)
-    return response.status(400).send({ error: 'malformatted id' });
+    response.status(400).send({ error: 'malformatted id' });
+    return;
   } 
-  
+
   if (error.name === 'ValidationError') {
     logger.debug(request.authError.name);
     logger.debug(request.authError.message);
     logger.debug(request.authError)
+    // Fix this before production
     response.clearCookie();
     response.status(401).json({ error: request.authError.message });
+    return;
   } 
+
+  logger.debug(error);
+  response.status(500).send((await fs.promises.readFile(path.join(__dirname, "../public/error.html"))).toString());
 
   next(error);
 };
@@ -145,7 +105,5 @@ module.exports = {
   handleDataBaseConnection,
   errorHandler,
   unknownEndpoint,
-  checkJWT,
-  setAccessToken,
-  setUserData,
+  authenticateUser
 }

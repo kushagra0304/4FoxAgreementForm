@@ -2,7 +2,7 @@ const localtunnel = require('localtunnel');
 const config = require('./config');
 const fs = require('fs');
 const https = require('https');
-const addressModel = require('../schemas/address');
+const AddressModel = require('../schemas/address');
 const cache = require('./cache');
 const logger = require('./logger');
 
@@ -105,8 +105,69 @@ const saveAddresInDb = async (adderss) => {
   }
 }
 
+function addBrTagsInplaceNewline(text) {
+  // Replace newline characters with <br> tags
+  return text.replace(/\n/g, '<br>');
+}
+
+function difference(setA, setB) {
+  let _difference = new Set(setA);
+  for (let elem of setB) {
+      _difference.delete(elem);
+  }
+  return _difference;
+}
+
+
+const addAddresses = async (toAddresses, ccAddresses) => {
+  try {
+    const cacheAddressSet = new Set(cache.getAddresses());
+    const toAddressSet = new Set(toAddresses);
+    const ccAddressSet = new Set(ccAddresses);
+
+    const newToAddresses = difference(toAddressSet, cacheAddressSet);
+    const newCCAddresses = difference(ccAddressSet, cacheAddressSet);
+    const newAddresses = new Set([...newToAddresses, ...newCCAddresses]);
+
+    console.log(newAddresses);
+
+    for (let address of newAddresses) {
+      const existingAddress = await AddressModel.findOne({ address: address });
+      if (existingAddress) { continue; }
+      try {
+        const savedAddress = await AddressModel.create({ address: address });
+        cache.addAddressToCache(savedAddress.address);
+      } catch(e) {
+        continue;
+      }
+    }
+
+  } catch(error) {
+    logger.debug("Error while saving new address");
+    logger.debug(error);
+  }
+}
+
+function extractAgreementFormDataFieldsAndStripThem(originalObj) {
+  const newObj = {};
+  for (const key in originalObj) {
+      if (originalObj.hasOwnProperty(key)) {
+          if (key.startsWith('agreementFormData_')) {
+              const newKey = key.replace('agreementFormData_', '');
+              newObj[newKey] = originalObj[key];
+          } else {
+              newObj[key] = originalObj[key];
+          }
+      }
+  }
+  return newObj;
+}
+
 module.exports = {
     exposeTheApplicationToWWW,
     generateRandomStateOfLen10,
-    saveAddresInDb
+    saveAddresInDb,
+    addBrTagsInplaceNewline,
+    addAddresses,
+    extractAgreementFormDataFieldsAndStripThem
 }

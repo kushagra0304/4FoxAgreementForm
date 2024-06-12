@@ -13,10 +13,13 @@ const oauthRouter = require('./controllers/oauth');
 const emailRouter = require('./controllers/email');
 const searchRouter = require('./controllers/search');
 const downloadRouter = require('./controllers/download');
+const addressRouter = require('./controllers/address');
+const clientRouter = require('./controllers/client');
 const middlewares = require('./utils/middlewares');
 const helper = require('./utils/helper');
 const cache = require('./utils/cache');
 const logger = require('./utils/logger');
+const templatesUtils = require('./utils/templates');
 
 // ---------------------------------------------------------
 // Initialization
@@ -35,6 +38,7 @@ console.log('Connecting to MongoDB');
 
 mongoose.connect(url).then(() => {
   console.log('Connection successfull to MongoDB');
+  templatesUtils.clearTemplateFolderAndDownloadAllTemplates();
 }).catch((e) => {
   console.log('Error connecting to MongoDB:', e.message);
 });
@@ -56,24 +60,23 @@ cache.initPptrBrowserInstance().then(() => {
 })
 // ---------------------------------------------------------
 // Middleware list
-if(config.ENVIROMENT === "development" || config.ENVIROMENT === "debug") { app.use(logger.measureRequestTime); }
+if (config.ENVIROMENT === 'development') {
+  app.use(require('./utils/middlewares').morganRequestLogger);
+}
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
-if (config.ENVIROMENT === 'development') {
-    app.use(require('./utils/middlewares').morganRequestLogger);
-}
 app.use(cookieParser());
-app.use(middlewares.checkJWT)
-app.use(middlewares.setAccessToken)
-app.use(middlewares.setUserData)
+app.use(middlewares.authenticateUser)
 // ----------------------------
 // Controllers
 app.use('/oauth', oauthRouter);
 app.use('/email', emailRouter);
 app.use('/search', searchRouter);
 app.use('/download', downloadRouter);
+app.use('/address', addressRouter);
+app.use('/client', clientRouter);
 // ----------------------------
-// app.use(middlewares.unknownEndpoint);
+app.use(middlewares.unknownEndpoint);
 app.use(middlewares.errorHandler); // this has to be the last loaded middleware.
 
 // ---------------------------------------------------------
