@@ -20,6 +20,8 @@ const helper = require('./utils/helper');
 const cache = require('./utils/cache');
 const logger = require('./utils/logger');
 const templatesUtils = require('./utils/templates');
+const emailModel = require('./schemas/email');
+const userModel = require('./schemas/user');
 
 // ---------------------------------------------------------
 // Initialization
@@ -36,9 +38,64 @@ const url = config.MONGODB_URI;
 
 console.log('Connecting to MongoDB');
 
-mongoose.connect(url).then(() => {
+mongoose.connect(url).then(async () => {
   console.log('Connection successfull to MongoDB');
-  templatesUtils.clearTemplateFolderAndDownloadAllTemplates();
+  // templatesUtils.clearTemplateFolderAndDownloadAllTemplates();
+  try {
+    await emailModel.deleteMany({});
+    console.log("Emails deleted successfully");
+  } catch (e) {
+    console.log("Failed to delete all emails", e);
+  }
+
+  const testData = [
+    {
+      userId: '666dbfe5ad992c2c7ed3cf91',
+      from: 'sender@example.com',
+      to: ['recipient1@example.com', 'recipient2@example.com'],
+      cc: ['cc1@example.com'],
+      subject: 'Test Email 1',
+      body: 'This is the body of test email 1.',
+      agreementType: 'Standard',
+      clientAgreed: true,
+      createdAt: new Date('June 1, 2023 10:00:00 AM UTC'),
+      agreementFormData_field1: 'Value 1',
+      agreementFormData_field2: 'Value 2'
+    },
+    {
+      userId: '666dbfe5ad992c2c7ed3cf91',
+      from: 'another.sender@example.com',
+      to: ['recipient3@example.com'],
+      cc: ['cc2@example.com', 'cc3@example.com'],
+      subject: 'Test Email 2',
+      body: 'This is the body of test email 2.',
+      agreementType: 'Premium',
+      clientAgreed: false,
+      createdAt: new Date('June 2, 2023 11:00:00 AM UTC'),
+      agreementFormData_field1: 'Value 3',
+      agreementFormData_field3: 'Value 4'
+    },
+    {
+      userId: '666dbfe5ad992c2c7ed3cf91',
+      from: 'third.sender@example.com',
+      to: ['recipient4@example.com'],
+      cc: [],
+      subject: 'Test Email 3',
+      body: 'This is the body of test email 3.',
+      agreementType: 'Basic',
+      clientAgreed: true,
+      createdAt: new Date('June 3, 2023 12:00:00 PM UTC'),
+      agreementFormData_field2: 'Value 5',
+      agreementFormData_field4: 'Value 6'
+    }
+  ];
+
+  try {
+    await emailModel.insertMany(testData)
+    console.log('Test data inserted successfully');
+  } catch(e) {
+    console.error('Error inserting test data:', e);
+  }
 }).catch((e) => {
   console.log('Error connecting to MongoDB:', e.message);
 });

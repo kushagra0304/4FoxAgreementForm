@@ -4,18 +4,44 @@ const emailModel = require("../schemas/email");
 
 router.post('', async (request, response) => {
     try {
-        const { searchQuery, page, limit, fromFilter } = request.body;
+        const { searchQuery, page, limit, from, clientAgreed, startDate, endDate } = request.body;
 
         const skip = (page - 1) * limit;
 
-        const docs = await emailModel
+        let fromFilter = {};
+        if (from) {
+            fromFilter = { from: from };
+        }
+
+        let clientAgreedFilter = {};
+        if (clientAgreed) {
+            clientAgreedFilter = { clientAgreed: true };
+        }
+
+        let dateFilter = {};
+        if (startDate && endDate) {
+            dateFilter = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+        }
+
+        let searchQueryFilter = {};
+        if(searchQuery) {
+            searchQueryFilter = { $text: { $search: `"${searchQuery}"` } };
+        }
+
+        let query = emailModel
             .find({
-              $text: { $search: searchQuery },
-              $or: [{ from: { $eq: fromFilter }}]
+                ...searchQueryFilter,
+                ...fromFilter,
+                ...clientAgreedFilter,
+                ...dateFilter
             })
-            .sort({ dateField: 1 })
-            .skip(skip)
-            .limit(limit)
+            .sort({ createdAt: -1 })
+
+        if(limit) {
+            query = query.skip(skip).limit(limit)
+        }
+
+        const docs = await query.exec();
 
         response.send(docs);
     } catch(error) {

@@ -89,24 +89,4 @@ router.post('/send', async (request, response, next) => {
     }
 })
 
-router.post('/download', async (request, response) => {
-    const { agreementType, placeholders } = request.body;
-    // console.log(placeholders)
-    let pdfBuffer;
-
-    try {
-        pdfBuffer = await generatePDF({ agreementType, placeholders });
-    } catch(error) {
-        console.log(error)
-        response.status(500).send("Error converting to pdf.");
-        return;
-    }
-
-    response.setHeader('Content-Type', 'application/pdf');
-    response.setHeader('Content-Disposition', 'attachment; filename="agreement-form.pdf"');
-    response.setHeader('Content-Length', pdfBuffer.length);
-    response.end(pdfBuffer);
-    return;
-})
-
 module.exports = router;

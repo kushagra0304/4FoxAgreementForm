@@ -3,10 +3,9 @@ const router = require('express').Router();
 const emailModel = require("../schemas/email");
 const { generatePDF } = require("../utils/generateTemplate");
 const archiver = require('archiver');
-const fs = require('fs');
 const { extractAgreementFormDataFieldsAndStripThem } = require("../utils/helper");
 
-router.post('', async (request, response) => {
+router.post('/multiple', async (request, response) => {
     try {
         if(request.errorInAuth) {
             logger.error('Unauthorized operation');
@@ -15,9 +14,6 @@ router.post('', async (request, response) => {
         }
 
         const { documentIds } = request.body;
-
-        // Sample documentIds for testing
-        // const documentIds = ["6650c6396fded61aa118b704", "66516830e2fe11ba71b6edae"];
 
         const pdfBuffers = [];
 
@@ -65,5 +61,47 @@ router.post('', async (request, response) => {
         response.status(500).send(error.message);
     }
 });
+
+router.post('/single', async (request, response) => {
+    try {
+        if(request.errorInAuth) {
+            logger.error('Unauthorized operation');
+            response.status(401).send('Unauthorized operation');
+            return;
+        }
+
+        const { documentId } = request.body;
+
+        let document = await emailModel.findById(documentId);
+        document = extractAgreementFormDataFieldsAndStripThem(document._doc);
+
+        const pdfBuffer = await generatePDF({ placeholders: document, agreementType: document.agreementType });
+
+        response.setHeader('Content-Type', 'application/pdf');
+        response.setHeader('Content-Disposition', 'attachment; filename="agreement-form.pdf"');
+        response.setHeader('Content-Length', pdfBuffer.length);
+        response.end(pdfBuffer);
+    } catch(error) {
+        logger.debug(`Error generating agreement forms: ${error.message}`);
+        response.status(500).send(error.message);
+    }
+});
+
+router.post('/current', async (request, response) => {
+    try {
+        const { agreementType, placeholders } = request.body;
+        let pdfBuffer;
+
+        pdfBuffer = await generatePDF({ agreementType, placeholders });
+
+        response.setHeader('Content-Type', 'application/pdf');
+        response.setHeader('Content-Disposition', 'attachment; filename="agreement-form.pdf"');
+        response.setHeader('Content-Length', pdfBuffer.length);
+        response.end(pdfBuffer);
+    } catch(error) {
+        console.log(error)
+        response.status(500).send("Error converting to pdf.");
+    }
+})
 
 module.exports = router;

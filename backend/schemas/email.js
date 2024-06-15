@@ -10,6 +10,7 @@ const emailSchema = new mongoose.Schema({
     body: { type: String, required: true },
     agreementType: { type: String, required: true },
     clientAgreed: { type: Boolean, required: true, default: false },
+    createdAt: { type: Date, default: Date.now }
     // Agreement form data will be defined when a document is created, like this agreementFormData_field(placeholder in template): value
 }, { strict: false });
 
