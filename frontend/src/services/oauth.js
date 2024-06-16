@@ -21,3 +21,13 @@ export const getCheckJWT = async () => {
 
     return true;
 }
+
+export const getLogout = async () => {
+    try {
+        await axios.get(`./oauth/logout`);
+    } catch(error) {
+        return false;
+    }
+
+    return true;
+}

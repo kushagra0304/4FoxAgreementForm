@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // id is created by mongoose when we save a document
 const clientSchema = new mongoose.Schema({
-    emailId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Email', required: true }],
+    emailId: { type: mongoose.Schema.Types.ObjectId, ref: 'Email', required: true },
 });
 
 clientSchema.set('toJSON', {

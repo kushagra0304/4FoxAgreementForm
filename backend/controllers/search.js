@@ -1,47 +1,16 @@
 const logger = require("../utils/logger");
 const router = require('express').Router();
 const emailModel = require("../schemas/email");
+const { searchInEmails } = require("../utils/search");
 
-router.post('', async (request, response) => {
+router.post('', async (request, response, next) => {
     try {
-        const { searchQuery, page, limit, from, clientAgreed, startDate, endDate } = request.body;
+        // if(request.errorInAuth) {
+        //     next({ name: "ValidationError" });
+        //     return;
+        // }
 
-        const skip = (page - 1) * limit;
-
-        let fromFilter = {};
-        if (from) {
-            fromFilter = { from: from };
-        }
-
-        let clientAgreedFilter = {};
-        if (clientAgreed) {
-            clientAgreedFilter = { clientAgreed: true };
-        }
-
-        let dateFilter = {};
-        if (startDate && endDate) {
-            dateFilter = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-        }
-
-        let searchQueryFilter = {};
-        if(searchQuery) {
-            searchQueryFilter = { $text: { $search: `"${searchQuery}"` } };
-        }
-
-        let query = emailModel
-            .find({
-                ...searchQueryFilter,
-                ...fromFilter,
-                ...clientAgreedFilter,
-                ...dateFilter
-            })
-            .sort({ createdAt: -1 })
-
-        if(limit) {
-            query = query.skip(skip).limit(limit)
-        }
-
-        const docs = await query.exec();
+        const docs = await searchInEmails(request.body);
 
         response.send(docs);
     } catch(error) {

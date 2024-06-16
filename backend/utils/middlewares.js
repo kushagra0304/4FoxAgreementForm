@@ -72,16 +72,17 @@ const authenticateUser = async (request, response, next) => {
 }
 
 const unknownEndpoint = async (request, response) => {
-  response.status(404).send((await fs.promises.readFile(path.join(__dirname, "../public/notFound.html"))).toString());
+  response.status(404).send((await fs.promises.readFile(path.join(__dirname, "../public/four0four.html"))).toString());
 };
 
 const errorHandler = async (error, request, response, next) => {
+  response.status(500)
+
   if (error.name === 'CastError') {
     logger.debug(error.name);
     logger.debug(error.message);
     logger.debug(error)
-    response.status(400).send({ error: 'malformatted id' });
-    return;
+    response.status(400);
   } 
 
   if (error.name === 'ValidationError') {
@@ -90,14 +91,13 @@ const errorHandler = async (error, request, response, next) => {
     logger.debug(request.authError)
     // Fix this before production
     response.clearCookie();
-    response.status(401).json({ error: request.authError.message });
-    return;
+    response.status(401);
   } 
 
   logger.debug(error);
-  response.status(500).send((await fs.promises.readFile(path.join(__dirname, "../public/error.html"))).toString());
+  response.send((await fs.promises.readFile(path.join(__dirname, "../public/error.html"))).toString());
 
-  next(error);
+  next();
 };
 
 module.exports = {

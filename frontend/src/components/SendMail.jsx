@@ -4,7 +4,8 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import CreatableSelect from 'react-select/creatable';
 import Alert from 'react-bootstrap/Alert';
-import { postDownloadPdf, postSendEmail } from '../services/email';
+import { postSendEmail } from '../services/email';
+import { postDownloadPdf } from '../services/download';
 import AgreementFormType1 from './AgreementFormType1';
 import { getAddress } from '../services/address';
 
@@ -237,7 +238,7 @@ const SendMail = () => {
                 <AgreementFormType1/>
             </Form>
             <Button disabled={disableBothFormBtn} variant="primary" onClick={handleDownloadPDF} type="button">Download</Button>
-            <Button disabled={disableBothFormBtn} variant="primary" onClick={handleSendMail} type="button">Send</Button>
+            <Button disabled={disableBothFormBtn} variant="primary" onClick={handleSendMail} type="button" className='ms-2'>Send</Button>
         </div>
     )
 };

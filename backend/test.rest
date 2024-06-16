@@ -2,9 +2,6 @@ POST https://fourfox.serveo.net/search
 Content-Type: application/json
 
 {
-  "searchQuery": "",
   "page": 1,
-  "limit": 10,
-  "startDate": "2023-06-03T12:00:00.000Z",
-  "endDate": "2023-06-03T12:00:00.000Z"
+  "limit": 10
 }

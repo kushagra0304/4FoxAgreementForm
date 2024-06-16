@@ -17,7 +17,7 @@ router.get('', async (request, response, next) => {
         const client = await clientModel.findById(clientId);
 
         if(!client) {
-            response.status(404).send("Client not found");
+            next(new Error("No such client"));
             return;
         }
 
@@ -94,7 +94,7 @@ router.post('', async (request, response, next) => {
         email.clientAgreed = true;
         await email.save();
 
-        response.send((await fs.promises.readFile(path.join(__dirname, "../public/clientVerification.html"))).toString());
+        response.send((await fs.promises.readFile(path.join(__dirname, "../public/verify.html"))).toString());
     } catch(error) {
         next(error)
     }
