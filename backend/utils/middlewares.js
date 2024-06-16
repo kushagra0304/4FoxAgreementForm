@@ -89,8 +89,7 @@ const errorHandler = async (error, request, response, next) => {
     logger.debug(request.authError.name);
     logger.debug(request.authError.message);
     logger.debug(request.authError)
-    // Fix this before production
-    response.clearCookie();
+    response.clearCookie('userToken');
     response.status(401);
   } 
 

@@ -39,7 +39,7 @@ const Login = () => {
                 <Alert variant="danger" show={showAlert}>Some error occured, please try again later</Alert>
                 <div className="loginCard">
                     <div>
-                        <h1>Hello <span style={{color: "tomato"}}>4Fox</span> Employee</h1>
+                        <h1>Hello <span style={{color: "tomato"}}>4Foxian</span>!</h1>
                         <h2>Sign in using your ZOHO account</h2>
                         <div onClick={zohoLogin} className="logoBox">
                             <img src={logo} alt="" />

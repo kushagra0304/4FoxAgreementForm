@@ -8,6 +8,42 @@ import { postSendEmail } from '../services/email';
 import { postDownloadPdf } from '../services/download';
 import AgreementFormType1 from './AgreementFormType1';
 import { getAddress } from '../services/address';
+import Spinner from 'react-bootstrap/Spinner';
+
+function MySpinner() {
+    return (
+      <Spinner animation="border" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>
+    );
+}
+
+function MyAlert({ data }) {
+    const [timeoutId, setTimeoutId] = useState("");
+    const [show, setShow] = useState(false);
+
+    useEffect(() => {
+        if(data.variant && data.message) {
+            clearTimeout(timeoutId);
+
+            setShow(true);
+
+            const timeoutid = setTimeout(() => {
+                setShow(false);
+            }, 5000)
+
+            setTimeoutId(timeoutid);
+        }
+    }, [data]);
+
+    if(show) {
+        return (
+            <Alert variant={data.variant} onClose={() => setShow(false)} dismissible>{data.message}</Alert>
+        );
+    } else {
+        return <></>;
+    }
+}
 
 const SendMail = () => {
     const [pdfFormNotValidated, setPdfFormNotValidated] = useState(false);
@@ -20,6 +56,7 @@ const SendMail = () => {
     const [recipients, setRecipients] = useState([]);
     const [cc, setCc] = useState([]);
     const [addresses, setAddresses] = useState([]);
+    const [alertData, setAlertData] = useState({});
 
     const fetchAddresses = async () => {
         const { addresses } = await getAddress()
@@ -65,29 +102,14 @@ const SendMail = () => {
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
+
+            setAlertData({ variant: 'success', message: "Operation successful" })
         } catch(error) {
-            let alertText;
-            let showAlert;
-
             if(error.message === "Form invalid") {
-                alertText = "Please fill all fields"
-                showAlert = true;
+                setAlertData({ variant: 'danger', message: "Please fill all fields" })
             } else {
-                alertText = "Operation unsuccessful, Please try again later."
-                showAlert = true;
+                setAlertData({ variant: 'danger', message: "Operation unsuccessful, Please try again later." })
             }
-
-            if(alertTimeOutInfo.bool) { clearTimeout(alertTimeOutInfo.timeoutId); } 
-
-            const timeoutid = setTimeout(() => {
-                setAlertTimeOutInfo({bool: false, timeoutId: NaN})
-                setAlertText('');
-                setShowAlert(false);            
-            }, 2000)
-
-            setAlertTimeOutInfo({bool: true, timeoutId: timeoutid})
-            setAlertText(alertText);
-            setShowAlert(showAlert);
         }
 
         toggleForm();
@@ -130,30 +152,14 @@ const SendMail = () => {
             await postSendEmail("first", pdfPlaceholders, mailDetails);
 
             fetchAddresses();
+
+            setAlertData({ variant: 'success', message: "Sent Mail successfully" })
         } catch(error) {
-            console.log(error);
-            let alertText;
-            let showAlert;
-
             if(error.message === "Form invalid") {
-                alertText = "Please fill all fields"
-                showAlert = true;
+                setAlertData({ variant: 'danger', message: "Please fill all fields" })
             } else {
-                alertText = "Operation unsuccessful, Please try again later."
-                showAlert = true;
+                setAlertData({ variant: 'danger', message: "Operation unsuccessful, Please try again later." })
             }
-
-            if(alertTimeOutInfo.bool) { clearTimeout(alertTimeOutInfo.timeoutId); } 
-
-            const timeoutid = setTimeout(() => {
-                setAlertTimeOutInfo({bool: false, timeoutId: NaN})
-                setAlertText('');
-                setShowAlert(false);            
-            }, 2000)
-
-            setAlertTimeOutInfo({bool: true, timeoutId: timeoutid})
-            setAlertText(alertText);
-            setShowAlert(showAlert);
         }
 
         toggleForm();
@@ -161,6 +167,7 @@ const SendMail = () => {
 
     return (
         <div className="sendMail">
+            <MyAlert data={alertData}/>
             <Alert variant="danger" show={showAlert}>{alertText}</Alert>
             <Form noValidate validated={emailFormNotValidated} id='emailForm' disabled={disableBothForm}>
                 <div className="mb-3">
@@ -237,8 +244,13 @@ const SendMail = () => {
             <Form noValidate validated={pdfFormNotValidated} disabled={disableBothForm} id='pdfForm'>
                 <AgreementFormType1/>
             </Form>
-            <Button disabled={disableBothFormBtn} variant="primary" onClick={handleDownloadPDF} type="button">Download</Button>
-            <Button disabled={disableBothFormBtn} variant="primary" onClick={handleSendMail} type="button" className='ms-2'>Send</Button>
+            {disableBothFormBtn ? 
+            <MySpinner/> :
+            <>
+                <Button disabled={disableBothFormBtn} variant="primary" onClick={handleDownloadPDF} type="button">Download</Button>
+                <Button disabled={disableBothFormBtn} variant="primary" onClick={handleSendMail} type="button" className='ms-2'>Send</Button>
+            </>
+            }
         </div>
     )
 };

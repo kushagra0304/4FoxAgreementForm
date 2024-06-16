@@ -287,9 +287,9 @@ const Search = () => {
                                 <p><span style={{color: '#F5E3E7', fontWeight: 'lighter'}}> To: </span>{(email.to || []).join(', ')}</p>
                                 <p><span style={{color: '#F5E3E7', fontWeight: 'lighter'}}> Client Name: </span>{email.ClientName}</p>
                             </div>
-                            <div style={{ flexGrow: 1 }}>
+                            <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <Button variant="primary" type="button" onClick={() => handleEmailDownload(email.id)}>Download</Button>
-                                <Button variant="danger" type="button" onClick={() => handleEmailDelete(email.id)} className='mb-2'>Delete</Button>
+                                <Button variant="danger" type="button" onClick={() => handleEmailDelete(email.id)}>Delete</Button>
                             </div>
                         </div>
                     </ListGroup.Item>
