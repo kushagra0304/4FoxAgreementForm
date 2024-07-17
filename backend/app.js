@@ -20,8 +20,6 @@ const helper = require('./utils/helper');
 const cache = require('./utils/cache');
 const logger = require('./utils/logger');
 const templatesUtils = require('./utils/templates');
-const emailModel = require('./schemas/email');
-const userModel = require('./schemas/user');
 
 // ---------------------------------------------------------
 // Initialization

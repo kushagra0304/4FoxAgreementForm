@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+let base = '';
+
+if(import.meta.env.DEV) {
+    base = '/api';
+}
+
 export const postDownloadPdf = async (agreementType, placeholders) => {
-    const { data } = await axios.post(`./download/current`, {
+    const { data } = await axios.post(`.${base}/download/current`, {
         agreementType: agreementType,
         placeholders: placeholders
     }, {
@@ -12,7 +18,7 @@ export const postDownloadPdf = async (agreementType, placeholders) => {
 }
 
 export const postDownloadThroughSearchQuery = async (data) => {
-    const res = await axios.post(`./download/multiple`, data, {
+    const res = await axios.post(`.${base}/download/multiple`, data, {
         responseType: 'blob', 
     });
 
@@ -20,7 +26,7 @@ export const postDownloadThroughSearchQuery = async (data) => {
 }
 
 export const postDownloadThroughId = async (id) => {
-    const res = await axios.post(`./download/single`, { documentId: id }, {
+    const res = await axios.post(`.${base}/download/single`, { documentId: id }, {
         responseType: 'blob', 
     });
 

@@ -176,9 +176,6 @@ const SendMail = () => {
                         ...theme,
                         colors: {
                             ...theme.colors,
-                            neutral0: '#212529',
-                            neutral50: '#dee2e6',
-                            neutral20: '#495057',
                             primary25: 'tomato',        
                         },
                         })} 
@@ -202,9 +199,6 @@ const SendMail = () => {
                         ...theme,
                         colors: {
                             ...theme.colors,
-                            neutral0: '#212529',
-                            neutral50: '#dee2e6',
-                            neutral20: '#495057',
                             primary25: 'tomato',        
                         },
                         })} 

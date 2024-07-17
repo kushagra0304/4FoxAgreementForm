@@ -1,5 +1,6 @@
 const { default: puppeteer } = require("puppeteer");
 const addressModel = require("../schemas/address");
+const mongoose = require('mongoose');
 
 class Cache {
     constructor() {
@@ -10,8 +11,11 @@ class Cache {
 
     async initAddressCache() {
         try {
-            const allAddressesDoc = await addressModel.find({});
-            allAddressesDoc.forEach(doc => this.addresses.push(doc.address));
+            const thisRef = this;
+                mongoose.connection.on('connected', async () => {
+                    const allAddressesDoc = await addressModel.find({});
+                    allAddressesDoc.forEach(doc => thisRef.addresses.push(doc.address));
+                })
         } catch (error) {
             console.error("Error initializing address cache:", error);
         }

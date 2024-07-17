@@ -263,7 +263,7 @@ const Search = () => {
   }
 
   return (
-    <Container>
+    <Container style={{ marginTop: "8rem" }}>
         <MyAlert data={alertData}/>
         <SearchForm 
             searchInProgress={searchInProgress} 
@@ -280,12 +280,12 @@ const Search = () => {
                 email = extractAgreementFormDataFieldsAndStripThem(email);
 
                 return (
-                    <ListGroup.Item style={email.clientAgreed ? {backgroundColor: "#213529"} : {backgroundColor: "#352529"}} key={index}>
+                    <ListGroup.Item style={email.clientAgreed ? {backgroundColor: "#4a6d62"} : {backgroundColor: "#352529"}} key={index}>
                         <div style={{ display: 'flex', gap: '1rem'}}>
-                            <div style={{ flexGrow: 3 }}>
-                                <p><span style={{color: '#F5E3E7', fontWeight: 'lighter'}}> From: </span>{email.from}</p>
-                                <p><span style={{color: '#F5E3E7', fontWeight: 'lighter'}}> To: </span>{(email.to || []).join(', ')}</p>
-                                <p><span style={{color: '#F5E3E7', fontWeight: 'lighter'}}> Client Name: </span>{email.ClientName}</p>
+                            <div style={{ flexGrow: 3, color: '#FFFFFF' }}>
+                                <p><span style={{color: '#FFFFFF', fontWeight: 'lighter'}}> From: </span>{email.from}</p>
+                                <p><span style={{color: '#FFFFFF', fontWeight: 'lighter'}}> To: </span>{(email.to || []).join(', ')}</p>
+                                <p><span style={{color: '#FFFFFF', fontWeight: 'lighter'}}> Client Name: </span>{email.ClientName}</p>
                             </div>
                             <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <Button variant="primary" type="button" onClick={() => handleEmailDownload(email.id)}>Download</Button>
