@@ -7,7 +7,7 @@
     "start": "vite",
     "build": "vite build",
     "start-serveo": "concurrently \"vite\" \"ssh -R fourfox:80:localhost:3000 serveo.net\"",
-    "dev-build": "NODE_ENV=development vite build --mode development",
+    "dev-serveo-noLogs": "concurrently \"vite\" \"ssh -R fourfox:80:localhost:3000 serveo.net > /dev/null 2>&1\"",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview --host"
   },
