@@ -31,6 +31,7 @@ if(ENVIROMENT === "development") {
 const TOKEN_SECRET = ENVIROMENT === "development" ? "ybhhufei7ghf7c7btv[=]'=[38hq" : generateTokenSecret();
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS;
  
 module.exports = {
   MONGODB_URI,
@@ -40,5 +41,6 @@ module.exports = {
   TOKEN_SECRET,
   CLIENT_ID,
   CLIENT_SECRET,
-  TUNNEL_SERVICE
+  TUNNEL_SERVICE,
+  ADMIN_ADDRESS
 };

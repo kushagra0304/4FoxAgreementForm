@@ -44,7 +44,7 @@ function MyAlert({ data }) {
     }
 }
 
-const SearchForm = ({ handleForm, searchInProgress, handleDownloadAll }) => {
+const SearchForm = ({ handleForm, downloadInProgress, searchInProgress, handleDownloadAll }) => {
     const [startDate, setStartDate] = useState();
     const [endDate, setEndDate] = useState();
     const [searchQuery, setSearchQuery] = useState('');
@@ -127,7 +127,7 @@ const SearchForm = ({ handleForm, searchInProgress, handleDownloadAll }) => {
             </Col>
             </Row>
             {
-            searchInProgress ? 
+            (searchInProgress || downloadInProgress) ? 
             <MySpinner/> : 
             <div>
                 <Button variant="primary" type="submit">Submit</Button>
@@ -166,6 +166,7 @@ const Search = () => {
   const [page, setPage] = useState(1);
   const [formData, setFormData] = useState({})
   const [searchInProgress, setSearchInProgress] = useState(false);
+  const [downloadInProgress, setDownloadInProgress] = useState(false);
   const [alertData, setAlertData] = useState({}); 
 
   const handleSearch = async (searchData, page, limit) => {
@@ -196,6 +197,7 @@ const Search = () => {
 
   const handleDownloadAll = async (data) => {
     try {
+        setDownloadInProgress(true);
         const zip = await postDownloadThroughSearchQuery(data);
 
         const url = window.URL.createObjectURL(new Blob([zip]));
@@ -216,6 +218,8 @@ const Search = () => {
             variant: 'danger',
             message: 'Operation unsuccessful, Please try again later.'
         });
+    } finally {
+        setDownloadInProgress(false);
     }
   }
 
@@ -263,10 +267,11 @@ const Search = () => {
   }
 
   return (
-    <Container style={{ marginTop: "8rem" }}>
+    <Container>
         <MyAlert data={alertData}/>
         <SearchForm 
             searchInProgress={searchInProgress} 
+            downloadInProgress = {downloadInProgress}
             handleForm={(data) => {
                 handleSearch(data, 1, 10);
                 setFormData(data);
@@ -280,12 +285,12 @@ const Search = () => {
                 email = extractAgreementFormDataFieldsAndStripThem(email);
 
                 return (
-                    <ListGroup.Item style={email.clientAgreed ? {backgroundColor: "#4a6d62"} : {backgroundColor: "#352529"}} key={index}>
+                    <ListGroup.Item style={email.clientAgreed ? {backgroundColor: "rgba(0, 255, 0, 0.4)", color: 'black'} : {backgroundColor: "rgba(255, 0, 0, 0.4)", color: "black"}} key={index}>
                         <div style={{ display: 'flex', gap: '1rem'}}>
-                            <div style={{ flexGrow: 3, color: '#FFFFFF' }}>
-                                <p><span style={{color: '#FFFFFF', fontWeight: 'lighter'}}> From: </span>{email.from}</p>
-                                <p><span style={{color: '#FFFFFF', fontWeight: 'lighter'}}> To: </span>{(email.to || []).join(', ')}</p>
-                                <p><span style={{color: '#FFFFFF', fontWeight: 'lighter'}}> Client Name: </span>{email.ClientName}</p>
+                            <div style={{ flexGrow: 3 }}>
+                                <p><span style={{fontWeight: 'lighter'}}> From: </span>{email.from}</p>
+                                <p><span style={{fontWeight: 'lighter'}}> To: </span>{(email.to || []).join(', ')}</p>
+                                <p><span style={{fontWeight: 'lighter'}}> Client Name: </span>{email.clientName}</p>
                             </div>
                             <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <Button variant="primary" type="button" onClick={() => handleEmailDownload(email.id)}>Download</Button>

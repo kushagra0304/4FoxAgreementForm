@@ -5,6 +5,7 @@ const { generatePDF } = require("../utils/generateTemplate");
 const archiver = require('archiver');
 const { extractAgreementFormDataFieldsAndStripThem } = require("../utils/helper");
 const { searchInEmails } = require("../utils/search");
+const { checkAccess } = require("../utils/access");
 
 // router.post('/multiple', async (request, response) => {
 //     try {
@@ -62,10 +63,15 @@ const { searchInEmails } = require("../utils/search");
 //     }
 // });
 
-router.post('/multiple', async (request, response) => {
+router.post('/multiple', checkAccess, async (request, response) => {
     try {
         if(request.errorInAuth) {
             next({ name: "ValidationError" });
+            return;
+        }
+
+        if(request.access.employee) {
+            next({ name: 'User not authorized to perform bulk download' });
             return;
         }
 
@@ -78,7 +84,7 @@ router.post('/multiple', async (request, response) => {
 
             const pdfBuffer = await generatePDF({ placeholders: document, agreementType: document.agreementType });
 
-            pdfBuffers.push({ buffer: pdfBuffer, name: `document_${document.ClientName}_${document._id}.pdf` });
+            pdfBuffers.push({ buffer: pdfBuffer, name: `document_${document.clientName}_${document._id}.pdf` });
         }
 
         // Set headers for zip file
@@ -121,7 +127,7 @@ router.post('/single', async (request, response) => {
         const pdfBuffer = await generatePDF({ placeholders: document, agreementType: document.agreementType });
 
         response.setHeader('Content-Type', 'application/pdf');
-        response.setHeader('Content-Disposition', `attachment; filename="document_${document.ClientName}_${document._id}.pdf"`);
+        response.setHeader('Content-Disposition', `attachment; filename="document_${document.clientName}_${document._id}.pdf"`);
         response.setHeader('Content-Length', pdfBuffer.length);
         response.end(pdfBuffer);
     } catch(error) {

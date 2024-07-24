@@ -9,6 +9,7 @@ import { postDownloadPdf } from '../services/download';
 import AgreementFormType1 from './AgreementFormType1';
 import { getAddress } from '../services/address';
 import Spinner from 'react-bootstrap/Spinner';
+import AgreementFormType2 from './AgreementFormType2';
 
 function MySpinner() {
     return (
@@ -57,6 +58,11 @@ const SendMail = () => {
     const [cc, setCc] = useState([]);
     const [addresses, setAddresses] = useState([]);
     const [alertData, setAlertData] = useState({});
+    const [agreementFormType, setAggrementFormType] = useState('first');
+
+    const handleAggrementFormTypeChange = (event) => {
+        setAggrementFormType(event.target.value);
+      };
 
     const fetchAddresses = async () => {
         const { addresses } = await getAddress()
@@ -92,7 +98,7 @@ const SendMail = () => {
                 placeholders[key] = value;
             }
 
-            const data = await postDownloadPdf("first", placeholders);
+            const data = await postDownloadPdf(agreementFormType, placeholders);
 
             const url = window.URL.createObjectURL(new Blob([data]));
             const link = document.createElement('a');
@@ -149,7 +155,7 @@ const SendMail = () => {
                 pdfPlaceholders[key] = value;
             }
 
-            await postSendEmail("first", pdfPlaceholders, mailDetails);
+            await postSendEmail(agreementFormType, pdfPlaceholders, mailDetails);
 
             fetchAddresses();
 
@@ -235,8 +241,29 @@ const SendMail = () => {
                 </Form.Group>
             </Form>
             <div className="mb-3" style={{height: '1px', backgroundColor: 'white'}}></div>
+            <Form className='mb-3'>
+                <Form.Check
+                    type="radio"
+                    id="agreementFormType1"
+                    label="Normal Agreement"
+                    name="agreementFormTypeRadioGroup"
+                    value="first"
+                    checked={agreementFormType === 'first'}
+                    onChange={handleAggrementFormTypeChange}
+                />
+                <Form.Check
+                    type="radio"
+                    id="agreementFormType2"
+                    label="Digital Marketing agreement"
+                    name="agreementFormTypeRadioGroup"
+                    value="second"
+                    checked={agreementFormType === 'second'}
+                    onChange={handleAggrementFormTypeChange}
+                />
+            </Form>
             <Form noValidate validated={pdfFormNotValidated} disabled={disableBothForm} id='pdfForm'>
-                <AgreementFormType1/>
+                {agreementFormType === 'first' && <AgreementFormType1/>}
+                {agreementFormType === 'second' && <AgreementFormType2/>}
             </Form>
             {disableBothFormBtn ? 
             <MySpinner/> :

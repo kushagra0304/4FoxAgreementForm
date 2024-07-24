@@ -10,9 +10,10 @@ const generatePDF = async (data) => {
     await page.setContent(templateBuffer.toString());
 
     await page.evaluate((placeholders) => {    
-        for (const [key, value] of Object.entries(placeholders)) {
-          const pattern = new RegExp(`{${key}}`, 'g');
-          document.body.innerHTML = document.body.innerHTML.replace(pattern, value);
+        for (let [key, value] of Object.entries(placeholders)) {
+            const pattern = new RegExp(`{${key}}`, 'g');
+            value = (typeof value === 'string') ? value.split("\n").join("<br/>") : value;
+            document.body.innerHTML = document.body.innerHTML.replace(pattern, value);
         }
     }, placeholders);
 
@@ -35,8 +36,9 @@ const generateHTML = async (data) => {
     await page.setContent(templateBuffer.toString());
 
     await page.evaluate((placeholders) => {
-        for (const [key, value] of Object.entries(placeholders)) {
+        for (let [key, value] of Object.entries(placeholders)) {
             const pattern = new RegExp(`{${key}}`, 'g');
+            value = (typeof value === 'string') ? value.split("\n").join("<br/>") : value;
             document.body.innerHTML = document.body.innerHTML.replace(pattern, value);
         }
     }, placeholders);

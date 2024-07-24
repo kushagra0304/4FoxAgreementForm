@@ -15,6 +15,7 @@ const searchRouter = require('./controllers/search');
 const downloadRouter = require('./controllers/download');
 const addressRouter = require('./controllers/address');
 const clientRouter = require('./controllers/client');
+const accessRouter = require('./controllers/access');
 const middlewares = require('./utils/middlewares');
 const helper = require('./utils/helper');
 const cache = require('./utils/cache');
@@ -74,6 +75,7 @@ app.use('/search', searchRouter);
 app.use('/download', downloadRouter);
 app.use('/address', addressRouter);
 app.use('/client', clientRouter);
+app.use('/access', accessRouter);
 // ----------------------------
 app.use(middlewares.unknownEndpoint);
 app.use(middlewares.errorHandler); // this has to be the last loaded middleware.

@@ -8,7 +8,6 @@
     "dev": "ENVIROMENT=development nodemon index.js",
     "dev-loca": "ENVIROMENT=development TUNNEL_SERVICE=loca nodemon index.js",
     "dev-serveo": "ENVIROMENT=development TUNNEL_SERVICE=serveo nodemon index.js",
-    "dev-serveo-noLogs": "concurrently \"ENVIROMENT=development TUNNEL_SERVICE=serveo nodemon index.js\" \"ssh -R fourfox:80:localhost:10000 serveo.net > /dev/null 2>&1\"",
     "build-frontend": "cd ../frontend && npm i && npm run build && mv build ../backend",
     "debug": "ENVIROMENT=debug node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"

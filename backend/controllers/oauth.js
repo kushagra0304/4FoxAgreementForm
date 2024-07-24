@@ -5,6 +5,8 @@ const logger = require('../utils/logger');
 const jwt = require('../utils/jwt')
 const userModel = require('../schemas/user');
 const path = require('path');
+const { checkAccessFunc } = require('../utils/access');
+const fs = require('fs');
 
 function generateRandomStateOfLen10() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -68,6 +70,21 @@ router.get('/callback', async (request, response) => {
         return;
     }
     logger.debug("Account details fetched successfully"); // debug
+
+    try {
+        const emailAddress = accountDetailsRes.data.data[0].primaryEmailAddress
+        const access = await checkAccessFunc(emailAddress);
+
+        logger.debug("Checking if email address is authorized");
+        if(!access.owner && !access.employee && !access.hr) {
+            throw new Error("Email address does not have permission to use application.");
+        }
+        logger.debug("email address is authorized");
+    } catch(error) {
+        logger.debug(error); // debug
+        response.status(500).send((await fs.promises.readFile(path.join(__dirname, "../public/error.html"))).toString());
+        return;
+    }
 
     let userId;
 
