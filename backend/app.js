@@ -4,6 +4,7 @@
 const express = require('express');
 const { default: mongoose } = require('mongoose');
 const cookieParser = require('cookie-parser');
+const jwt = require('./utils/jwt')
 
 // ---------------------------------------------------------
 // My imports 
@@ -63,7 +64,7 @@ cache.initPptrBrowserInstance().then(() => {
 if (config.ENVIROMENT === 'development') {
   app.use(require('./utils/middlewares').morganRequestLogger);
 }
-app.use(express.static(__dirname + '/public'));
+app.use('/', express.static(__dirname + '/public'));
 app.use(express.json());
 app.use(cookieParser());
 app.use(middlewares.authenticateUser)
@@ -83,6 +84,7 @@ app.use(middlewares.errorHandler); // this has to be the last loaded middleware.
 // ---------------------------------------------------------
 // Export express app
 
+templatesUtils.updateAndSaveTemplates();
 module.exports = app;
 
 // ---------------------------------------------------------

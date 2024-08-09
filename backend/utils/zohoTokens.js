@@ -14,13 +14,13 @@ const getAccessToken = async (user) => {
 
     if((user.expiresAt)-(60*5) < ((new Date()).getTime())/1000) {
         const { data } = await axios.post(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${user.refreshToken}&client_id=${config.CLIENT_ID}&client_secret=${config.CLIENT_SECRET}&grant_type=refresh_token`);
-
-        logger.debug("Access token refrshed");
-
+    
         user.accessToken = data.access_token;
         user.expiresAt = ((new Date()).getTime())/1000 + data.expires_in;
 
         const updatedUser = await user.save()
+
+        logger.debug("Access token refrshed");
 
         return updatedUser.accessToken;
     }
